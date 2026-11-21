@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 底部导航：分组 / 分类 / 设置 -->
+<menu xmlns:android="http://schemas.android.com/apk/res/android">
+    <item
+        android:id="@+id/nav_groups"
+        android:icon="@drawable/ic_nav_groups"
+        android:title="@string/tab_groups" />
+    <item
+        android:id="@+id/nav_categories"
+        android:icon="@drawable/ic_nav_categories"
+        android:title="@string/tab_categories" />
+    <item
+        android:id="@+id/nav_settings"
+        android:icon="@drawable/ic_nav_settings"
+        android:title="@string/tab_settings" />
+</menu>

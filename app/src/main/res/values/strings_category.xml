@@ -1,0 +1,21 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="tab_groups">分组</string>
+    <string name="tab_categories">分类</string>
+    <string name="category_summary">%1$d 项待办 · 按重要 / 紧急分类</string>
+    <string name="category_count">%1$d 项待办 · 共 %2$d 项</string>
+    <string name="label_category">分类（重要 / 紧急）</string>
+
+    <string name="cat_important_urgent">重要紧急</string>
+    <string name="cat_important_not_urgent">重要不紧急</string>
+    <string name="cat_not_important_urgent">不重要紧急</string>
+    <string name="cat_not_important_not_urgent">不重要不紧急</string>
+
+    <string name="cat_important_urgent_desc">又重要又紧急，必须马上做</string>
+    <string name="cat_important_not_urgent_desc">重要但不紧急，抽出时间做</string>
+    <string name="cat_not_important_urgent_desc">不重要但紧急，交给别人或快速处理</string>
+    <string name="cat_not_important_not_urgent_desc">不重要也不紧急，有空再说</string>
+
+    <string name="empty_category_title">还没有任务</string>
+    <string name="empty_category_hint">先在「分组」里建分组并添加任务，\n之后就能在这里按重要 / 紧急查看</string>
+</resources>

@@ -1,0 +1,11 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <color name="widget_bg">#FF1E2024</color>
+    <color name="w_text_title">#FFECECEE</color>
+    <color name="w_text_sub">#FF9AA0A6</color>
+    <color name="w_line">#FF33363C</color>
+    <color name="brand_primary_bg">#334C6EF5</color>
+    <color name="brand_primary_container">#FF2A3357</color>
+    <color name="brand_on_primary_container">#FFC9D7FF</color>
+    <color name="chip_bg">#FF2A2F38</color>
+</resources>

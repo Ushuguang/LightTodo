@@ -1,0 +1,7 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- 小米小部件（MIUI Widget）版本号。
+         官方规范：放在 application 的 meta-data 下，任一小部件有变动或新增就要升，
+         且只能升高，否则系统可能把该应用的所有小组件下线。 -->
+    <integer name="miui_widget_version">1</integer>
+</resources>

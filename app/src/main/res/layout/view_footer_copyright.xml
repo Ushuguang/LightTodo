@@ -1,0 +1,18 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  页面底部的版权归属。
+  每个页面都 include 一次，保证任何一屏的最下方都有这一行。
+  用 wrap_content 高度 + 上边距，不抢列表的滚动空间。
+-->
+<TextView xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/copyright"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:paddingStart="20dp"
+    android:paddingTop="10dp"
+    android:paddingEnd="20dp"
+    android:paddingBottom="12dp"
+    android:gravity="center"
+    android:text="@string/copyright_notice"
+    android:textColor="?attr/colorOnSurfaceVariant"
+    android:textSize="11sp" />

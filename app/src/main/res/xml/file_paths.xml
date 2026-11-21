@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 允许 FileProvider 分享应用私有目录里的下载文件（更新用的 APK） -->
+<paths>
+    <external-files-path
+        name="external_downloads"
+        path="Download" />
+    <files-path
+        name="internal_files"
+        path="." />
+</paths>

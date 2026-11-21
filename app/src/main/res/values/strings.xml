@@ -1,0 +1,94 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">LightTodo</string>
+
+    <string name="main_summary">%1$d 个分组 · %2$d 项待办 · 共 %3$d 项</string>
+    <string name="group_pending_badge">%1$d 项待办</string>
+    <string name="group_progress">已完成 %1$d / 共 %2$d</string>
+    <string name="group_empty_hint">这个分组还没有任务</string>
+    <string name="group_all_done_hint">全部完成了，休息一下吧</string>
+    <string name="group_subtitle">%1$d 项待办 · 共 %2$d 项</string>
+    <string name="header_done">已完成 (%1$d)</string>
+
+    <string name="empty_main_title">还没有分组</string>
+    <string name="empty_main_hint">点下面的按钮建一个分组，\n再往分组里添加任务</string>
+    <string name="empty_group_title">这个分组还没有任务</string>
+    <string name="empty_group_hint">点右下角的按钮添加第一条任务</string>
+
+    <string name="action_new_group">新建分组</string>
+    <string name="action_new_task">新建任务</string>
+    <string name="action_cancel">取消</string>
+    <string name="action_create">创建</string>
+    <string name="action_save">保存</string>
+    <string name="action_add">添加</string>
+    <string name="action_delete">删除</string>
+    <string name="action_edit">编辑</string>
+    <string name="action_rename">重命名</string>
+    <string name="action_ok">知道了</string>
+
+    <string name="dialog_new_group">新建分组</string>
+    <string name="dialog_rename_group">重命名分组</string>
+    <string name="dialog_delete_group_title">删除分组</string>
+    <string name="dialog_delete_group_message">确定删除「%1$s」吗？该分组下的任务会一并删除，且无法恢复。</string>
+    <string name="dialog_new_task">新建任务</string>
+    <string name="dialog_edit_task">编辑任务</string>
+    <string name="dialog_delete_task_title">删除任务</string>
+    <string name="dialog_need_group_title">先建一个分组</string>
+    <string name="dialog_need_group_message">还没有任何分组。先建一个分组，就可以往里面添加任务了。</string>
+    <string name="dialog_pick_group">添加到哪个分组？</string>
+    <string name="dialog_about_title">使用说明</string>
+    <string name="dialog_about_message">LightTodo v1.4.0\n\n· 底部三个图标切换「分组 / 分类 / 设置」，设置里有「提醒与权限」和「关于」。\n· 分组：右下角按钮新建分组；长按分组可以重命名或删除。\n· 分类：把任务按重要 / 紧急四象限一起看，点开能看到所属分组。\n· 任务可以设「截止时间」和「提醒时间」，到点会在通知栏提醒，通知上能直接点「完成」。\n· 桌面小组件有五种：待办清单、分组概览、分类概览、单组待办、单类待办，可以叠着放。\n· 支持上超级岛 / 灵动岛（需在系统里给本应用打开「焦点通知」开关）。\n· 「检查更新」会从 GitHub 仓库拉新版本，下载完直接调起系统安装器升级。\n\n所有数据只保存在这台手机上，不上传；只有你点「检查更新」时才会联网访问 GitHub 仓库。</string>
+
+    <string name="hint_group_name">分组名称</string>
+    <string name="hint_task_title">要做什么？</string>
+    <string name="hint_task_note">备注（可选）</string>
+    <string name="error_empty">不能为空</string>
+
+    <string name="widget_list_label">待办清单</string>
+    <string name="widget_group_label">分组概览</string>
+    <string name="widget_list_title">待办清单</string>
+    <string name="widget_group_title">我的分组</string>
+    <string name="widget_pending_count">%1$d 项待办</string>
+    <string name="widget_group_count">%1$d 组 · %2$d 项待办</string>
+    <string name="widget_group_pending">%1$d/%2$d</string>
+    <string name="widget_more_count">还有 %1$d 项 ›</string>
+    <string name="widget_open_all">查看全部 ›</string>
+    <string name="widget_all_done">全部完成，干得漂亮</string>
+    <string name="widget_empty">没有待办事项</string>
+    <string name="widget_group_empty">还没有分组</string>
+    <string name="widget_create_group">新建分组 ›</string>
+    <string name="widget_list_desc">列出所有分组里未完成的任务，点一下即可勾选完成。</string>
+    <string name="widget_group_desc">列出各个分组以及未完成的任务数量。</string>
+
+    <!-- 小组件 -->
+    <string name="action_refresh">刷新</string>
+    <string name="widget_category_label">分类概览</string>
+    <string name="widget_group_task_label">单组待办</string>
+    <string name="widget_category_task_label">单类待办</string>
+    <string name="widget_category_title">我的分类</string>
+    <string name="widget_category_count">%1$d 项待办</string>
+    <string name="widget_category_desc">四个象限（重要紧急 / 重要不紧急 / 不重要紧急 / 不重要不紧急）各自的待办数量。</string>
+    <string name="widget_group_task_desc">只显示一个分组里的待办，加到桌面时选分组，可以叠好几个各看各的。</string>
+    <string name="widget_category_task_desc">只显示一个分类里的待办，加到桌面时选分类，可以叠好几个各看各的。</string>
+    <string name="widget_group_task_title_default">选择一个分组</string>
+    <string name="widget_category_task_title_default">选择一个分类</string>
+    <string name="widget_no_group">还没有分组，先去 App 里建一个</string>
+    <string name="widget_group_of">本组</string>
+    <string name="widget_config_title">小组件设置</string>
+    <string name="widget_config_pick_group">选择这个小组件显示哪个分组</string>
+    <string name="widget_config_pick_category">选择这个小组件显示哪个分类</string>
+    <string name="widget_config_count">%1$d 项待办</string>
+    <string name="widget_config_none">还没有可显示的内容，先去 App 里建一个分组吧</string>
+
+    <string name="dialog_group_of">所属分组：%1$s</string>
+
+    <string name="cd_check">标记完成</string>
+    <string name="cd_uncheck">取消完成</string>
+
+    <string name="menu_about">关于</string>
+    <string name="menu_refresh_widget">刷新桌面小组件</string>
+    <string name="menu_rename_group">重命名分组</string>
+    <string name="menu_delete_group">删除分组</string>
+    <!-- 页脚版权 -->
+    <string name="copyright_notice">© Ushuguang</string>
+</resources>

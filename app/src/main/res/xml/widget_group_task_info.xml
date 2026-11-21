@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:configure="com.lighttodo.app.widget.WidgetConfigActivity"
+    android:description="@string/widget_group_task_desc"
+    android:initialLayout="@layout/widget_task_list"
+    android:maxResizeHeight="480dp"
+    android:maxResizeWidth="480dp"
+    android:minHeight="110dp"
+    android:minResizeHeight="80dp"
+    android:minResizeWidth="150dp"
+    android:minWidth="180dp"
+    android:previewLayout="@layout/widget_todo_list_preview"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="0"
+    android:widgetCategory="home_screen" />

@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 尺寸 -->
+<resources>
+    <!-- 题目列表里配图缩略图的边长 -->
+    <dimen name="q_thumb_size">84dp</dimen>
+    <!-- 题目列表里配图之间的间隔 -->
+    <dimen name="q_thumb_gap">6dp</dimen>
+    <!-- 编辑弹窗里配图小图的边长 -->
+    <dimen name="q_photo_edit_size">96dp</dimen>
+</resources>

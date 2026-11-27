@@ -4,6 +4,8 @@
     <string name="tab_categories">分类</string>
     <string name="category_summary">%1$d 项待办 · 按重要 / 紧急分类</string>
     <string name="category_count">%1$d 项待办 · 共 %2$d 项</string>
+    <!-- 分类页只列未完成的任务，所以不再显示「共 N 项」 -->
+    <string name="category_count_pending">%1$d 项待办</string>
     <string name="label_category">分类（重要 / 紧急）</string>
 
     <string name="cat_important_urgent">重要紧急</string>
@@ -18,4 +20,6 @@
 
     <string name="empty_category_title">还没有任务</string>
     <string name="empty_category_hint">先在「分组」里建分组并添加任务，\n之后就能在这里按重要 / 紧急查看</string>
+    <string name="empty_category_all_done_title">待办都做完了</string>
+    <string name="empty_category_all_done_hint">完成的任务在「分组」页可以回看，\n这里只显示还没做完的</string>
 </resources>

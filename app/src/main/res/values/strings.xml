@@ -22,6 +22,7 @@
     <string name="action_save">保存</string>
     <string name="action_add">添加</string>
     <string name="action_delete">删除</string>
+    <string name="action_confirm">确定</string>
     <string name="action_edit">编辑</string>
     <string name="action_rename">重命名</string>
     <string name="action_ok">知道了</string>
@@ -45,7 +46,11 @@
     <string name="error_empty">不能为空</string>
 
     <string name="widget_list_label">待办清单</string>
+    <!-- 普通安卓组件版本的名字加了后缀，是为了在桌面的小组件列表里
+         能和「小米小部件」那一套区分开（两套功能一样，只是走的通道不同）。 -->
+    <string name="widget_list_plain_label">待办清单（安卓组件）</string>
     <string name="widget_group_label">分组概览</string>
+    <string name="widget_group_plain_label">分组概览（安卓组件）</string>
     <string name="widget_list_title">待办清单</string>
     <string name="widget_group_title">我的分组</string>
     <string name="widget_pending_count">%1$d 项待办</string>
@@ -63,8 +68,62 @@
     <!-- 小组件 -->
     <string name="action_refresh">刷新</string>
     <string name="widget_category_label">分类概览</string>
+    <string name="widget_category_plain_label">分类概览（安卓组件）</string>
     <string name="widget_group_task_label">单组待办</string>
+    <string name="widget_group_task_plain_label">单组待办（安卓组件）</string>
     <string name="widget_category_task_label">单类待办</string>
+    <string name="widget_category_task_plain_label">单类待办（安卓组件）</string>
+
+
+    <!-- 自定义清单小组件 -->
+    <string name="widget_custom_label">自定义清单</string>
+    <string name="widget_custom_plain_label">自定义清单（安卓组件）</string>
+    <string name="widget_custom_desc">加到桌面时可以自己选要显示什么</string>
+    <string name="widget_config_pick_scope">这个小组件要显示什么？</string>
+    <string name="widget_scope_all">全部任务</string>
+
+    <!-- ==================== 题目（攒着不会的题，等有空问老师）==================== -->
+    <string name="tab_questions">题目</string>
+    <string name="action_new_question">记一道题</string>
+    <string name="action_new_question_category">新建题目分类</string>
+    <string name="q_hint_title">题目（比如「第 3 题 积分变换」）</string>
+    <string name="q_hint_note">补充说明：题目原文、我的想法、老师讲过什么……</string>
+    <string name="q_photos_label">配图（可以拍照或从相册选）</string>
+    <string name="action_take_photo">拍照</string>
+    <string name="action_pick_photo">从相册选</string>
+    <string name="q_no_title">（没写题目）</string>
+    <string name="q_no_category">未分类</string>
+    <string name="q_dialog_category">分类：%1$s</string>
+    <string name="q_summary">%1$d 个分类 · %2$d 题待问</string>
+    <string name="q_category_count">%1$d 题待问</string>
+    <string name="q_detail_summary">%1$d 题待问 · 共 %2$d 题</string>
+    <string name="q_category_name_hint">分类名（比如「高等数学」）</string>
+    <string name="q_category_name_empty">分类名不能为空</string>
+    <string name="q_rename_category">重命名分类</string>
+    <string name="q_delete_category">删除分类</string>
+    <string name="q_delete_category_hint">这个分类里的题目和配图会一起删掉，删了就找不回来了。</string>
+    <string name="q_delete_confirm">删除这道题？</string>
+    <string name="q_delete_hint">题目和配图会一起删掉，删了就找不回来了。</string>
+    <string name="q_mark_asked">标记已问过</string>
+    <string name="q_empty_toast">题目、文字、图片至少填一样</string>
+    <string name="q_photo_failed">图片保存失败，换一张试试</string>
+    <string name="q_photo_some_failed">有几张图片没能存进去</string>
+    <string name="q_camera_unavailable">这台手机上打不开相机</string>
+    <string name="cd_asked">标记已问过</string>
+    <string name="cd_question_photo">题目配图</string>
+    <string name="empty_question_category_title">还没有题目分类</string>
+    <string name="empty_question_category_hint">先建一个分类，比如「高等数学」「线性代数」，
+然后把不会的题攒在里面，等有空一起问老师。</string>
+    <string name="empty_question_title">这个分类还没有题</string>
+    <string name="empty_question_hint">点右下角的按钮记一道不会的题吧，
+可以写字，也可以拍照。</string>
+
+    <!-- 助手页：负一屏组件入口说明 -->
+    <string name="perm_widget_entry_title">小组件在负一屏里去哪找</string>
+    <string name="perm_widget_entry_desc">负一屏右上角「+」→ 选「安卓组件」分类，搜 LightTodo，名字后面带「（安卓组件）」的那一套就是。</string>
+    <string name="state_widget_entry_ok">两套都已就绪</string>
+    <string name="widget_entry_help">小米把负一屏的小组件分成了「全部组件」和「安卓组件」两类。\n\n· 名字后面带「（安卓组件）」的，是标准安卓组件，现在就能在「安卓组件」分类里搜到，放负一屏或桌面都行，30 分钟自动刷新一次，也能点右上角刷新。\n\n· 不带后缀的那一套走的是小米小部件通道，功能完全一样，但必须先上架到小米应用商店、通过小米小部件平台审核，才会出现在「全部组件」里 —— 在那之前系统会把它从「安卓组件」分类里也一并摘掉。\n\n· 所以现在用「（安卓组件）」那一套就行，不用等上架。</string>
+    <string name="action_close">知道了</string>
     <string name="widget_category_title">我的分类</string>
     <string name="widget_category_count">%1$d 项待办</string>
     <string name="widget_category_desc">四个象限（重要紧急 / 重要不紧急 / 不重要紧急 / 不重要不紧急）各自的待办数量。</string>
@@ -91,4 +150,23 @@
     <string name="menu_delete_group">删除分组</string>
     <!-- 页脚版权 -->
     <string name="copyright_notice">© Ushuguang</string>
+    <string name="widget_shown_count">%1$d / %2$d 项</string>
+    <string name="widget_shown_groups">%1$d / %2$d 组</string>
+
+<!-- 「自动变分类」 -->
+<string name="label_auto_category">自动变分类</string>
+<string name="label_auto_category_hint">到点自动把这条任务改成别的分类，可以排多个时间点依次生效</string>
+<string name="label_auto_target_category">变成哪个分类</string>
+<string name="label_auto_when">什么时候变</string>
+<string name="label_auto_quick">几天之后（点一下就选上）</string>
+<string name="action_auto_add_step">添加时间点</string>
+<string name="dialog_auto_step_title">自动变分类</string>
+<string name="auto_in_1day">1 天后</string>
+<string name="auto_in_3days">3 天后</string>
+<string name="auto_in_7days">1 周后</string>
+<string name="tip_auto_category">到点会自动改分类，并发一条通知告诉你；设备关机错过的话，下次打开 App 会补上。</string>
+<string name="error_auto_past">时间要在现在之后</string>
+<string name="notify_auto_category_title">任务分类已自动更改</string>
+<string name="notify_auto_category">「%1$s」已自动改为「%2$s」</string>
+<string name="task_auto_hint">%1$s → %2$s</string>
 </resources>

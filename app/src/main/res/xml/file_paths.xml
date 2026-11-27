@@ -7,4 +7,12 @@
     <files-path
         name="internal_files"
         path="." />
+    <!-- 题目配图（在 files/photos/ 下面） -->
+    <files-path
+        name="question_photos"
+        path="photos/" />
+    <!-- 相机拍完照的临时文件（在 cache/camera/ 下面） -->
+    <cache-path
+        name="camera_cache"
+        path="camera/" />
 </paths>

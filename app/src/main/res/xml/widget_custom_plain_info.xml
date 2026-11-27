@@ -1,0 +1,16 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 「自定义清单」小组件（普通安卓组件版）：
+     加到桌面时会弹配置页，直接选这个卡片要显示什么（全部任务 / 某个分组 / 某个分类）。
+     尺寸不设上限，可以在桌面上自由拖拽放大缩小。 -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:configure="com.lighttodo.app.widget.WidgetConfigActivity"
+    android:description="@string/widget_custom_desc"
+    android:initialLayout="@layout/widget_task_list"
+    android:minHeight="60dp"
+    android:minResizeHeight="60dp"
+    android:minResizeWidth="90dp"
+    android:minWidth="110dp"
+    android:previewLayout="@layout/widget_todo_list_preview"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="1800000"
+    android:widgetCategory="home_screen" />

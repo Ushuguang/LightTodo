@@ -1,0 +1,6 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 自定义的 view id -->
+<resources>
+    <!-- ImageLoader 用来记住「这个 ImageView 当前要显示哪张图」，避免异步回贴串图 -->
+    <item name="tag_image_loader" type="id" />
+</resources>

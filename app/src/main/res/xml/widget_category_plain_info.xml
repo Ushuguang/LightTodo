@@ -1,0 +1,15 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 普通安卓组件版本（不带 miuiWidget 标识）：
+     负一屏「安卓组件」分类和桌面的小组件列表里能直接搜到。
+     没有曝光刷新可用，所以这里用系统定时刷新兜底（30 分钟）。 -->
+<appwidget-provider xmlns:android="http://schemas.android.com/apk/res/android"
+    android:description="@string/widget_category_desc"
+    android:initialLayout="@layout/widget_category"
+    android:minHeight="60dp"
+    android:minResizeHeight="60dp"
+    android:minResizeWidth="90dp"
+    android:minWidth="110dp"
+    android:previewLayout="@layout/widget_category_preview"
+    android:resizeMode="horizontal|vertical"
+    android:updatePeriodMillis="1800000"
+    android:widgetCategory="home_screen" />

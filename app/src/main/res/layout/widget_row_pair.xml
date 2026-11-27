@@ -14,8 +14,8 @@
         android:background="?android:attr/selectableItemBackground"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingTop="6dp"
-        android:paddingBottom="6dp">
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp">
 
         <ImageView
             android:id="@+id/w_left_icon"
@@ -38,7 +38,11 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="@color/w_text_title"
-                android:textSize="13sp" />
+                android:autoSizeMaxTextSize="13sp"
+            android:autoSizeMinTextSize="9sp"
+            android:autoSizeStepGranularity="1sp"
+            android:autoSizeTextType="uniform"
+            android:textSize="13sp" />
 
             <TextView
                 android:id="@+id/w_left_sub"
@@ -60,8 +64,8 @@
         android:background="?android:attr/selectableItemBackground"
         android:gravity="center_vertical"
         android:orientation="horizontal"
-        android:paddingTop="6dp"
-        android:paddingBottom="6dp">
+        android:paddingTop="2dp"
+        android:paddingBottom="2dp">
 
         <ImageView
             android:id="@+id/w_right_icon"
@@ -84,7 +88,11 @@
                 android:ellipsize="end"
                 android:maxLines="1"
                 android:textColor="@color/w_text_title"
-                android:textSize="13sp" />
+                android:autoSizeMaxTextSize="13sp"
+            android:autoSizeMinTextSize="9sp"
+            android:autoSizeStepGranularity="1sp"
+            android:autoSizeTextType="uniform"
+            android:textSize="13sp" />
 
             <TextView
                 android:id="@+id/w_right_sub"

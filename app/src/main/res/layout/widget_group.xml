@@ -5,7 +5,7 @@
     android:layout_height="match_parent"
     android:background="@drawable/widget_bg"
     android:orientation="vertical"
-    android:padding="12dp">
+    android:padding="8dp">
 
     <LinearLayout
         android:id="@+id/w_header"
@@ -47,7 +47,7 @@
         android:id="@+id/w_divider"
         android:layout_width="match_parent"
         android:layout_height="1dp"
-        android:layout_marginTop="8dp"
+        android:layout_marginTop="6dp"
         android:background="@color/w_line" />
 
     <LinearLayout
@@ -68,13 +68,5 @@
         android:textSize="12sp"
         android:visibility="gone" />
 
-    <TextView
-        android:id="@+id/w_more"
-        android:layout_width="wrap_content"
-        android:layout_height="wrap_content"
-        android:layout_marginTop="4dp"
-        android:text="@string/widget_open_all"
-        android:textColor="@color/brand_primary"
-        android:textSize="12sp" />
 
 </LinearLayout>

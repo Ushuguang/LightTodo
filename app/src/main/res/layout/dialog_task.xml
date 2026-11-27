@@ -265,5 +265,47 @@
             android:textColor="?attr/colorOnSurfaceVariant"
             android:textSize="11sp" />
 
+        <!-- 自动变分类：到点自动把这条任务改成别的分类，可以排多个时间点 -->
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="16dp"
+            android:layout_marginEnd="24dp"
+            android:text="@string/label_auto_category"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="12sp" />
+
+        <TextView
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="24dp"
+            android:layout_marginTop="2dp"
+            android:layout_marginEnd="24dp"
+            android:text="@string/label_auto_category_hint"
+            android:textColor="?attr/colorOnSurfaceVariant"
+            android:textSize="11sp" />
+
+        <LinearLayout
+            android:id="@+id/auto_steps_box"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:orientation="vertical" />
+
+        <com.google.android.material.button.MaterialButton
+            android:id="@+id/btn_auto_add"
+            style="@style/Widget.Material3.Button.OutlinedButton"
+            android:layout_width="match_parent"
+            android:layout_height="wrap_content"
+            android:layout_marginStart="20dp"
+            android:layout_marginTop="6dp"
+            android:layout_marginEnd="20dp"
+            android:gravity="start|center_vertical"
+            android:minHeight="48dp"
+            android:text="@string/action_auto_add_step"
+            android:textColor="?attr/colorOnSurface"
+            app:icon="@drawable/ic_alarm"
+            app:iconGravity="textStart" />
+
     </LinearLayout>
 </ScrollView>

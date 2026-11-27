@@ -1,0 +1,49 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 小组件里两行任务之间的弹性空隙。
+
+     小组件高度不一定刚好排满整行任务，剩下的空间就变成几条这样的间隙，
+     让内容均匀铺开，而不是全部堆在顶部、下面空一大块。
+
+     高度用「二进制块」拼出来：32 + 16 + 8 + 4 + 2 = 62dp，
+     任意 0~62dp 都能拼出来，误差不超过 1dp。
+     用哪几块由 WidgetFactory 按剩余空间算好后用 setViewVisibility 开关。
+
+     踩过的坑：
+     1) 只能用 RemoteViews 白名单里的类：裸 <View> 会被 RemoteViews 的 inflater 拒绝
+        （"Class not allowed to be inflated android.view.View"），嵌套在布局里也一样。
+     2) 根节点的 layout_height 要写 wrap_content：RemoteViews.addView 加进来的子布局
+        拿不到 LayoutParams（addView 的 3 参版是 @hide，公开 API 设不了），
+        固定高度会被丢掉，wrap_content 才保得住高度。
+     3) 固定高度要写在「嵌套的子 view」上：嵌套在布局里的子 view 是有 LayoutParams 的，
+        写在它身上才不会被丢掉。 -->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/w_gap"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:orientation="vertical">
+
+    <FrameLayout
+        android:id="@+id/g32"
+        android:layout_width="match_parent"
+        android:layout_height="32dp" />
+
+    <FrameLayout
+        android:id="@+id/g16"
+        android:layout_width="match_parent"
+        android:layout_height="16dp" />
+
+    <FrameLayout
+        android:id="@+id/g8"
+        android:layout_width="match_parent"
+        android:layout_height="8dp" />
+
+    <FrameLayout
+        android:id="@+id/g4"
+        android:layout_width="match_parent"
+        android:layout_height="4dp" />
+
+    <FrameLayout
+        android:id="@+id/g2"
+        android:layout_width="match_parent"
+        android:layout_height="2dp" />
+</LinearLayout>

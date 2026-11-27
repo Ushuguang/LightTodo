@@ -1,0 +1,29 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!-- 编辑弹窗里的一张配图缩略图，右上角一个删除按钮 -->
+<FrameLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    xmlns:tools="http://schemas.android.com/tools"
+    android:layout_width="match_parent"
+    android:layout_height="92dp">
+
+    <ImageView
+        android:id="@+id/photo"
+        android:layout_width="match_parent"
+        android:layout_height="match_parent"
+        android:contentDescription="@string/cd_question_photo"
+        android:scaleType="centerCrop"
+        tools:src="@drawable/ic_todo_not_important_not_urgent" />
+
+    <ImageView
+        android:id="@+id/photo_remove"
+        android:layout_width="26dp"
+        android:layout_height="26dp"
+        android:layout_gravity="top|end"
+        android:layout_margin="4dp"
+        android:background="@drawable/bg_circle_dark"
+        android:contentDescription="@string/action_delete"
+        android:padding="5dp"
+        android:src="@drawable/ic_close"
+        app:tint="@color/w_text_title"
+        xmlns:app="http://schemas.android.com/apk/res-auto" />
+
+</FrameLayout>

@@ -85,6 +85,20 @@
             android:visibility="gone"
             tools:visibility="visible">
 
+            <!-- 所属分类（重要/紧急那一套） -->
+            <TextView
+                android:id="@+id/t_cat"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textSize="12sp"
+                android:textStyle="bold"
+                android:visibility="gone"
+                tools:text="重要紧急"
+                tools:visibility="visible" />
+
             <TextView
                 android:id="@+id/t_group"
                 android:layout_width="wrap_content"
@@ -96,6 +110,20 @@
                 android:textSize="12sp"
                 android:visibility="gone"
                 tools:text="工作"
+                tools:visibility="visible" />
+
+            <!-- 自动变分类提示：什么时间会变成哪个分类 -->
+            <TextView
+                android:id="@+id/t_auto"
+                android:layout_width="wrap_content"
+                android:layout_height="wrap_content"
+                android:layout_marginEnd="10dp"
+                android:ellipsize="end"
+                android:maxLines="1"
+                android:textColor="?attr/colorOnSurfaceVariant"
+                android:textSize="12sp"
+                android:visibility="gone"
+                tools:text="11月29日 08:00 → 重要紧急"
                 tools:visibility="visible" />
 
             <ImageView

@@ -1,0 +1,37 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  小组件被拖得很矮时用的「精简行」：只有一行标题 + 左侧圆点，不显示副标题。
+  高度约 17dp（11sp 文字行高 + 上下各 1dp 内边距），
+  这样 60dp 高的小组件也能真正显示一条任务，而不是空着一大片。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/w_item_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal"
+    android:paddingTop="1dp"
+    android:paddingBottom="1dp">
+
+    <!-- 左侧圆圈按紧急程度着色：红=重要紧急 橙=重要不紧急 蓝=不重要紧急 灰=不重要不紧急 -->
+    <ImageView
+        android:id="@+id/w_item_icon"
+        android:layout_width="12dp"
+        android:layout_height="12dp"
+        android:contentDescription="@string/cd_check"
+        android:src="@drawable/w_ic_todo_not_important_not_urgent" />
+
+    <TextView
+        android:id="@+id/w_item_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="5dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:includeFontPadding="false"
+        android:maxLines="1"
+        android:textColor="@color/w_text_title"
+        android:textSize="11sp" />
+
+</LinearLayout>

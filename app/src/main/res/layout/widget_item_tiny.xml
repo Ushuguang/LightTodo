@@ -1,0 +1,35 @@
+<?xml version="1.0" encoding="utf-8"?>
+<!--
+  小组件被拖到最小（60dp 以下）时用的「极简行」：圆点 + 一行小字，
+  高度约 15dp，连副标题都没有。
+  没有它的话，60dp 高的小组件一行都放不下，只能空着。
+-->
+<LinearLayout xmlns:android="http://schemas.android.com/apk/res/android"
+    android:id="@+id/w_item_root"
+    android:layout_width="match_parent"
+    android:layout_height="wrap_content"
+    android:background="?android:attr/selectableItemBackground"
+    android:gravity="center_vertical"
+    android:orientation="horizontal">
+
+    <!-- 左侧圆圈按紧急程度着色：红=重要紧急 橙=重要不紧急 蓝=不重要紧急 灰=不重要不紧急 -->
+    <ImageView
+        android:id="@+id/w_item_icon"
+        android:layout_width="10dp"
+        android:layout_height="10dp"
+        android:contentDescription="@string/cd_check"
+        android:src="@drawable/w_ic_todo_not_important_not_urgent" />
+
+    <TextView
+        android:id="@+id/w_item_title"
+        android:layout_width="0dp"
+        android:layout_height="wrap_content"
+        android:layout_marginStart="4dp"
+        android:layout_weight="1"
+        android:ellipsize="end"
+        android:includeFontPadding="false"
+        android:maxLines="1"
+        android:textColor="@color/w_text_title"
+        android:textSize="10sp" />
+
+</LinearLayout>

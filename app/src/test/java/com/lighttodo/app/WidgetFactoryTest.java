@@ -139,23 +139,51 @@ public class WidgetFactoryTest {
 
     @Test
     public void 高度换算合理() {
+        // chrome 实测 47dp、分组行实测 31dp，所以同样的高度现在能多显示一行
         assertEquals(1, WidgetFactory.rowsForHeight(60));
         assertEquals(1, WidgetFactory.rowsForHeight(90));
-        assertEquals(1, WidgetFactory.rowsForHeight(118));
-        assertEquals(3, WidgetFactory.rowsForHeight(200));
-        assertEquals(6, WidgetFactory.rowsForHeight(280));
+        assertEquals(2, WidgetFactory.rowsForHeight(118));
+        assertEquals(4, WidgetFactory.rowsForHeight(200));
+        assertEquals(7, WidgetFactory.rowsForHeight(280));
         assertEquals(12, WidgetFactory.rowsForHeight(1000));
     }
 
     @Test
     public void 放得开的任务才并排放() {
-        // 280dp 宽：一栏约 (280-24-10)/2 = 123dp，扣掉图标和色点后大约还能放 84dp 的字
+        // 280dp 宽：半栏 (280-8-10)/2 = 131dp，扣掉圆圈 14dp + 间距 6dp + 误差余量 6dp，
+        // 还能放约 105dp 的字（13sp 中文一个字约 13dp → 8 个字以内）。
         assertTrue("短任务放得下，应该并排", WidgetFactory.fitsInColumn(context, "买牛奶", 280));
         assertTrue("短任务放得下，应该并排", WidgetFactory.fitsInColumn(context, "交房租", 280));
-        assertFalse("长任务放不下会出省略号，必须独占整行",
-                WidgetFactory.fitsInColumn(context, "整理本周会议纪要", 280));
-        assertFalse("长任务放不下会出省略号，必须独占整行",
-                WidgetFactory.fitsInColumn(context, "把周报发到群里", 280));
+        assertTrue("8 个字放得下，应该并排", WidgetFactory.fitsInColumn(context, "整理本周会议纪要", 280));
+        assertFalse("太长放不下会出省略号，必须独占整行",
+                WidgetFactory.fitsInColumn(context, "整理本周的会议纪要和下周计划", 280));
+    }
+
+    /**
+     * 副标题比主标题还长时（比如截止时间），也必须独占整行，
+     * 否则副标题会先被截断。
+     */
+    @Test
+    public void 副标题太长也不能并排() {
+        assertTrue("副标题短就正常并排",
+                WidgetFactory.fitsInColumn(context, "回复邮件", "工作", 280));
+        assertFalse("副标题太长会溢出，必须独占整行",
+                WidgetFactory.fitsInColumn(context, "回复邮件", "截止 11月25日 14:30 开会", 280));
+    }
+
+    /**
+     * 并排的真实约束：主标题 + 副标题里更宽的那个，扣掉圆圈和间距后必须放得下半栏。
+     * 这是「不出现省略号」的底线，改排版参数时这条不能破。
+     */
+    @Test
+    public void 并排时文字必须放得下半栏() {
+        String[] titles = {"回复邮件", "订机票", "写周报", "交房租", "把周报发到群里", "整理本周会议纪要"};
+        for (String t : titles) {
+            assertTrue("「" + t + "」判断为能并排", WidgetFactory.fitsInColumn(context, t, 280));
+        }
+        // 12 个字 = 156dp，明显超过半栏 131dp，必须拒绝
+        assertFalse("12 个字必须拒绝并排",
+                WidgetFactory.fitsInColumn(context, "一二三四五六七八九十甲乙", 280));
     }
 
     @Test

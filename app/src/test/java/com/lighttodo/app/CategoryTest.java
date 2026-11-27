@@ -102,7 +102,7 @@ public class CategoryTest {
         try (ActivityController<MainActivity> controller = Robolectric.buildActivity(MainActivity.class)) {
             MainActivity activity = controller.setup().get();
             BottomNavigationView nav = activity.findViewById(R.id.bottom_nav);
-            assertEquals("底部导航三个入口：分组 / 分类 / 设置", 3, nav.getMenu().size());
+            assertEquals("底部导航四个入口：分组 / 分类 / 题目 / 设置", 4, nav.getMenu().size());
 
             nav.setSelectedItemId(R.id.nav_categories);
 
@@ -112,6 +112,27 @@ public class CategoryTest {
             assertEquals(8, categoryList.getAdapter().getItemCount());
             assertEquals(android.view.View.VISIBLE,
                     categoryList.getVisibility());
+        }
+    }
+
+    @Test
+    public void 已完成的任务不出现在分类页() {
+        Group g = store.addGroup("工作");
+        Task done = store.addTask(g.id, "已完成的", "", 0L, 0L, true, true);
+        store.addTask(g.id, "还没做的", "", 0L, 0L, true, true);
+        store.toggleTask(g.id, done.id);
+
+        try (ActivityController<MainActivity> controller = Robolectric.buildActivity(MainActivity.class)) {
+            MainActivity activity = controller.setup().get();
+            com.google.android.material.bottomnavigation.BottomNavigationView nav =
+                    activity.findViewById(R.id.bottom_nav);
+            nav.setSelectedItemId(R.id.nav_categories);
+
+            RecyclerView categoryList = activity.findViewById(R.id.category_list);
+            assertNotNull(categoryList.getAdapter());
+            // 4 个象限表头 + 1 条未完成的任务
+            assertEquals("已完成的任务不该再出现在分类页里",
+                    5, categoryList.getAdapter().getItemCount());
         }
     }
 

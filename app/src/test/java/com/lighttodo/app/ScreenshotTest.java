@@ -101,6 +101,21 @@ public class ScreenshotTest {
         Group life = store.addGroup("生活");
         store.addTask(life.id, "买牛奶和咖啡豆", "", 0L, 0L, false, false);
         store.addTask(life.id, "交房租", "每月 15 号", 0L, 0L, false, false);
+        // 这两条没设截止时间和提醒 —— 以前这一行会被整体藏掉，什么都看不见
+        store.addTask(life.id, "体育", "", 0L, 0L, true, false);
+        store.addTask(work.id, "作业", "", 0L, 0L, true, true);
+        // 这条已经做完了 —— 分类页不该再列它（分组页里还能看到）
+        Task finished = store.addTask(work.id, "已经做完了的事", "", 0L, 0L, true, true);
+        store.toggleTask(work.id, finished.id);
+        // 这条设了「3 天后自动变成重要紧急」—— 任务项上要显示出来
+        Task auto = store.addTask(life.id, "体育测试", "", 0L, 0L, true, false);
+        java.util.Calendar c = java.util.Calendar.getInstance();
+        c.add(java.util.Calendar.DAY_OF_YEAR, 3);
+        c.set(java.util.Calendar.HOUR_OF_DAY, 8);
+        c.set(java.util.Calendar.MINUTE, 0);
+        store.setAutoSteps(life.id, auto.id, java.util.Arrays.asList(
+                com.lighttodo.app.model.AutoCategoryStep.of(c.getTimeInMillis(),
+                        com.lighttodo.app.model.Category.IMPORTANT_URGENT)));
 
         try (ActivityController<MainActivity> controller = Robolectric.buildActivity(MainActivity.class)) {
             MainActivity activity = controller.setup().get();

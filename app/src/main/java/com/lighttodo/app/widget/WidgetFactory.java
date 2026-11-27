@@ -35,15 +35,60 @@ import java.util.List;
  */
 public final class WidgetFactory {
 
-    /** 独占整行的一条任务占多高（dp）：上下各 6dp 内边距 + 约 16dp 文字 + 余量。 */
-    private static final int FULL_ROW_HEIGHT_DP = 32;
-    /** 并排一行的两条任务占多高（dp）：上面标题、下面分组，两行文字。 */
-    private static final int PAIR_ROW_HEIGHT_DP = 44;
     /**
-     * 除任务列表以外的固定高度（dp）：上下内边距 + 标题栏 + 分隔线 + 底部「还有 N 项」。
-     * 实测约 74dp，这里留 4dp 余量，保证最后一行不会被裁掉。
+     * 独占整行的一条任务占多高（dp）。
+     *
+     * <p>这几个数字都是用 Robolectric 把小组件<b>真正渲染一遍</b>量出来的，不是拍脑袋估的
+     * （以前估的是 32/44/78，实际是 29/45/68，每行差几个 dp，滚几行就少显示一整行）。
+     * 实测值 + 1dp 余量，防真机字体和沙箱有差异。改布局时必须同步改这里，
+     * WidgetSpaceUsageTest 里的「布局实测高度和常量一致」会盯着。</p>
      */
-    private static final int CHROME_HEIGHT_DP = 78;
+    public static final int FULL_ROW_HEIGHT_DP = 30;
+    /** 并排一行的两条任务占多高（dp）：上面标题、下面分组，两行文字。 */
+    public static final int PAIR_ROW_HEIGHT_DP = 46;
+    /** 「分组概览」里一行分组占多高（dp）。 */
+    public static final int GROUP_ROW_HEIGHT_DP = 31;
+    /**
+     * 小组件被拖得很矮时用的「精简行」高度（dp）：只有一行标题、不显示副标题。
+     *
+     * <p>实测（带 App 主题渲染，文字设了 includeFontPadding=false）：
+     * 11sp 文字行高 + 上下各 1dp 内边距 ≈ 21dp。取 21dp ——
+     * 宁可少显示一行，也不能把最后一行裁掉。
+     * （沙箱字体的行高比真机偏大，真机上会稍微宽松一点。）</p>
+     */
+    public static final int COMPACT_ROW_HEIGHT_DP = 21;
+
+    /**
+     * 小组件被拖到最小（60dp 以下）时用的「极简行」高度（dp）。
+     *
+     * <p>实测（includeFontPadding=false）：10sp 文字行高 ≈ 18dp，取 18dp。</p>
+     */
+    public static final int TINY_ROW_HEIGHT_DP = 18;
+
+    /** 低于这个高度（dp）就用极简行（比紧凑行还矮）。 */
+    public static final int TINY_HEIGHT_DP = 60;
+
+    /** 行样式：正常（标题 + 副标题）。 */
+    public static final int LEVEL_NORMAL = 0;
+    /** 行样式：紧凑（只有标题，11sp）。 */
+    public static final int LEVEL_COMPACT = 1;
+    /** 行样式：极简（只有标题，10sp，圆点更小）。 */
+    public static final int LEVEL_TINY = 2;
+    /**
+     * 除任务列表以外的固定高度（dp）：上下内边距 + 标题栏 + 分隔线。
+     * 实测 46dp（内边距 8+8、标题栏 20.5、分隔线 6+1、任务区上边距 2）。
+     */
+    public static final int CHROME_HEIGHT_DP = 47;
+    /**
+     * 小组件很小时用的紧凑标题栏高度（dp）：省掉分隔线、标题字号也调小。
+     * 不然一个只放得下一行任务的小组件，标题栏就吃掉一大半，看着全是空白。
+     *
+     * <p>实测（带 App 主题渲染，跟真机一致）：上下内边距 16dp + 标题栏 20.5dp
+     * + 任务区上边距 2dp ≈ 39dp。</p>
+     */
+    public static final int COMPACT_CHROME_HEIGHT_DP = 39;
+    /** 低于这个高度（dp）就切到紧凑模式。 */
+    public static final int COMPACT_HEIGHT_DP = 100;
     private static final int MIN_ROWS = 1;
     private static final int MAX_ROWS = 12;
 
@@ -51,13 +96,20 @@ public final class WidgetFactory {
     public static final int TWO_COLUMN_MIN_WIDTH_DP = 240;
     /** 任务标题字号（sp），要和 widget_item.xml / widget_row_pair.xml 里的 13sp 对齐。 */
     private static final float TASK_TITLE_SP = 13f;
+    /** 副标题（分组名 / 截止时间）的字号。 */
+    private static final float TASK_SUB_SP = 10f;
     /** 小组件左右内边距（dp），widget_task_list.xml 里是 12dp × 2。 */
-    private static final float WIDGET_PADDING_DP = 24f;
+    /** 布局根节点的左右内边距（res/layout/widget_task_list.xml 里是 8dp）。
+     *  这里必须和真实布局一致：预留得比实际大，就会白白浪费半栏宽度，
+     *  本该并排的两条被迫各占一整行。 */
+    private static final float WIDGET_PADDING_DP = 8f;
     /** 并排两栏之间的间距（dp）。 */
     private static final float COLUMN_GAP_DP = 10f;
     /** 一栏里除标题外还要占的地方：勾选圈 14 + 间距 6 + 色点 8 + 间距 5。 */
-    private static final float ROW_CHROME_DP = 33f;
+    /** 半栏里除文字以外要占的位置：勾选圆圈 14dp + 与文字的间距 6dp。 */
+    private static final float ROW_CHROME_DP = 20f;
     /** 字体渲染误差的余量（dp）。 */
+    /** 留给字体渲染误差的余量（dp）。宁可少并排一行，也不要出现省略号。 */
     private static final float FIT_SAFETY_DP = 6f;
 
     /** 拿不到尺寸时的兜底值。 */
@@ -68,7 +120,7 @@ public final class WidgetFactory {
 
     /** 根据小组件高度估算能放下的整行任务条数。 */
     public static int rowsForHeight(int minHeightDp) {
-        int rows = (minHeightDp - CHROME_HEIGHT_DP) / FULL_ROW_HEIGHT_DP;
+        int rows = (minHeightDp - chromeHeightDp(minHeightDp)) / GROUP_ROW_HEIGHT_DP;
         if (rows < MIN_ROWS) rows = MIN_ROWS;
         if (rows > MAX_ROWS) rows = MAX_ROWS;
         return rows;
@@ -81,20 +133,35 @@ public final class WidgetFactory {
      * 所以同一个小组件里，长任务整行、短任务两两并排，是混着排的。</p>
      */
     public static boolean fitsInColumn(Context context, String title, int minWidthDp) {
+        return fitsInColumn(context, title, "", minWidthDp);
+    }
+
+    /**
+     * 判断一条任务能不能放进半栏里（和另一条并排）。
+     *
+     * <p>主标题和副标题都要放得下：副标题是分组名或截止时间，
+     * 有时候反而比主标题还长（例如「截止 11-25 14:30」），只看主标题会溢出。</p>
+     */
+    public static boolean fitsInColumn(Context context, String title, String sub, int minWidthDp) {
         if (title == null || title.isEmpty()) return true;
         if (minWidthDp < TWO_COLUMN_MIN_WIDTH_DP) return false;
         if (context == null) return false;
         DisplayMetrics dm = context.getResources().getDisplayMetrics();
-        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
-        paint.setTextSize(TASK_TITLE_SP * dm.scaledDensity);
-        // 字体量出来的宽度可能偏小（字体不同、渲染环境不同），再按字数估一个下限，取大的那个，
-        // 保证判断偏保守：宁可整行显示，也不要出现省略号。
-        float measured = paint.measureText(title);
-        float estimated = estimateEm(title) * TASK_TITLE_SP * dm.scaledDensity;
-        float titlePx = Math.max(measured, estimated);
+        float titlePx = textWidthPx(context, title, TASK_TITLE_SP, dm);
+        float subPx = textWidthPx(context, sub, TASK_SUB_SP, dm);
         float columnDp = (minWidthDp - WIDGET_PADDING_DP - COLUMN_GAP_DP) / 2f;
         float availableDp = columnDp - ROW_CHROME_DP - FIT_SAFETY_DP;
-        return titlePx <= availableDp * dm.density;
+        return Math.max(titlePx, subPx) <= availableDp * dm.density;
+    }
+
+    /** 量一段文字大概有多宽（px）：字体实测和按字数估算取大的那个，判断偏保守。 */
+    private static float textWidthPx(Context context, String text, float sp, DisplayMetrics dm) {
+        if (text == null || text.isEmpty()) return 0f;
+        Paint paint = new Paint(Paint.ANTI_ALIAS_FLAG);
+        paint.setTextSize(sp * dm.scaledDensity);
+        float measured = paint.measureText(text);
+        float estimated = estimateEm(text) * sp * dm.scaledDensity;
+        return Math.max(measured, estimated);
     }
 
     /** 粗略算一下标题占多少个「字宽」：中文按 1 个字宽，英文数字按 0.55 个。 */
@@ -132,6 +199,139 @@ public final class WidgetFactory {
         }
     }
 
+    /**
+     * 排版结果里的一行：左边必有一条任务，右边有的话就是并排的第二条。
+     */
+    public static class RowPlan {
+        public final TaskRow left;
+        /** 并排的右边那条；null 表示这一行只有 {@link #left} 一条，独占整行。 */
+        public final TaskRow pairRight;
+        /** 这一行的样式：{@link #LEVEL_NORMAL} / {@link #LEVEL_COMPACT} / {@link #LEVEL_TINY}。 */
+        public final int level;
+
+        public RowPlan(TaskRow left, TaskRow pairRight) {
+            this(left, pairRight, LEVEL_NORMAL);
+        }
+
+        public RowPlan(TaskRow left, TaskRow pairRight, int level) {
+            this.left = left;
+            this.pairRight = pairRight;
+            this.level = level;
+        }
+    }
+
+    /**
+     * 算出来这个高度能排下几行任务。
+     *
+     * <p>规则：</p>
+     * <ol>
+     *   <li>放得开的两条并排一行（占 42dp），放不开的一条独占整行（占 28dp）；</li>
+     *   <li>每加一行就按它实际占的高度累加，装不下就停 —— 这样最后一行永远不会被裁掉；</li>
+     *   <li><b>降级</b>：两条本来能并排，但剩下的高度不够并排时，改成让其中一条独占整行
+     *       继续往下排 —— 这样不会因为「差一点点放不下并排」而白白空掉一格。</li>
+     * </ol>
+     */
+    public static List<RowPlan> planRows(Context context, int minHeightDp, int minWidthDp,
+                                          List<TaskRow> rows) {
+        return planRows(context, minHeightDp, minWidthDp, rows, chromeHeightDp(minHeightDp));
+    }
+
+    /** 算出来这个高度能排下几行任务（标题栏占多少高度由调用方给）。 */
+    public static List<RowPlan> planRows(Context context, int minHeightDp, int minWidthDp,
+                                          List<TaskRow> rows, int chromeDp) {
+        List<RowPlan> plan = new ArrayList<>();
+        // 标题栏比正常矮，说明组件被拖小了：这时改用更矮的行样式，
+        // 一条只占 19dp（紧凑）或 16dp（极简），普通行要 30dp ——
+        // 这样连 60dp 高的小组件也能真正显示一条任务，而不是空着。
+        int level = levelForHeight(minHeightDp);
+        boolean compact = level != LEVEL_NORMAL;
+        int rowDp = rowHeightDpForLevel(level);
+        int availableDp = Math.max(0, minHeightDp - chromeDp);
+        int usedDp = 0;
+        int index = 0;
+        while (index < rows.size()) {
+            TaskRow current = rows.get(index);
+            TaskRow next = index + 1 < rows.size() ? rows.get(index + 1) : null;
+            // 精简行不显示副标题，宽度只按标题算。
+            boolean currentFits = compact
+                    ? fitsInColumn(context, current.title, minWidthDp)
+                    : fitsInColumn(context, current.title, current.sub, minWidthDp);
+            boolean nextFits = next != null && (compact
+                    ? fitsInColumn(context, next.title, minWidthDp)
+                    : fitsInColumn(context, next.title, next.sub, minWidthDp));
+            // 组件很矮时不做并排：并排一行要 46dp，矮组件里并排等于什么都放不下。
+            boolean pair = !compact && currentFits && nextFits;
+
+            if (pair) {
+                if (usedDp + PAIR_ROW_HEIGHT_DP <= availableDp) {
+                    plan.add(new RowPlan(current, next));
+                    usedDp += PAIR_ROW_HEIGHT_DP;
+                    index += 2;
+                    continue;
+                }
+                // 并排放不下了，退化成一条整行（更矮），放得下就继续
+                if (usedDp + rowDp > availableDp) break;
+                plan.add(new RowPlan(current, null, level));
+                usedDp += rowDp;
+                index += 1;
+                continue;
+            }
+
+            if (usedDp + rowDp > availableDp) break;
+            plan.add(new RowPlan(current, null, level));
+            usedDp += rowDp;
+            index += 1;
+        }
+        return plan;
+    }
+
+    /** 间隙的最大高度（dp）：32 + 16 + 8 + 4 + 2 这些块能拼出来的上限。 */
+    private static final int GAP_MAX_DP = 62;
+    /** 二进制块的dp 数，和 res/layout/widget_gap.xml 里那五个块一一对应。 */
+    private static final int[] GAP_BLOCKS_DP = {32, 16, 8, 4, 2};
+    /** 对应的 view id。 */
+    private static final int[] GAP_BLOCK_IDS = {
+            R.id.g32, R.id.g16, R.id.g8, R.id.g4, R.id.g2};
+
+    /**
+     * 造一条指定高度的弹性空隙。
+     *
+     * <p>高度用二进制块拼出来：32 + 16 + 8 + 4 + 2 = 62dp，
+     * 任意 0~62dp 都能拼出来，误差不超过 1dp。</p>
+     */
+    private static RemoteViews buildGap(Context context, int gapDp) {
+        RemoteViews gap = new RemoteViews(context.getPackageName(), R.layout.widget_gap);
+        int rest = gapDp;
+        for (int i = 0; i < GAP_BLOCKS_DP.length; i++) {
+            boolean on = rest >= GAP_BLOCKS_DP[i];
+            gap.setViewVisibility(GAP_BLOCK_IDS[i], on ? View.VISIBLE : View.GONE);
+            if (on) rest -= GAP_BLOCKS_DP[i];
+        }
+        return gap;
+    }
+
+    /** 小组件太矮时切到紧凑模式：标题栏别占太多地方。 */
+    public static boolean isCompact(int minHeightDp) {
+        return minHeightDp < COMPACT_HEIGHT_DP;
+    }
+
+    /** 当前尺寸下，标题栏（外加内边距那些）占掉多少高度。 */
+    public static int chromeHeightDp(int minHeightDp) {
+        return isCompact(minHeightDp) ? COMPACT_CHROME_HEIGHT_DP : CHROME_HEIGHT_DP;
+    }
+
+    /**
+     * 把小组件切成「紧凑模式」：矮的时候别让标题栏占掉一半。
+     *
+     * <p>做法：分隔线藏掉（省 7dp）、标题和计数字号调小（再省 3dp）。</p>
+     */
+    private static void applyCompact(RemoteViews views, int minHeightDp) {
+        if (!isCompact(minHeightDp)) return;
+        views.setViewVisibility(R.id.w_divider, View.GONE);
+        views.setTextViewTextSize(R.id.w_title, android.util.TypedValue.COMPLEX_UNIT_SP, 11f);
+        views.setTextViewTextSize(R.id.w_count, android.util.TypedValue.COMPLEX_UNIT_SP, 10f);
+    }
+
     /** 通用任务列表小组件：一栏或两栏。 */
     public static RemoteViews buildTaskList(Context context, int minHeightDp, int minWidthDp,
                                             String title, String countText, List<TaskRow> rows,
@@ -151,51 +351,123 @@ public final class WidgetFactory {
             views.setViewVisibility(R.id.w_add, View.GONE);
         }
 
+        applyCompact(views, minHeightDp);
+
         // 真正能放多高的任务区（扣掉标题栏、分隔线、底部「还有 N 项」和内边距）
-        int availableDp = Math.max(0, minHeightDp - CHROME_HEIGHT_DP);
+        int availableDp = Math.max(0, minHeightDp - chromeHeightDp(minHeightDp));
 
         views.removeAllViews(R.id.w_list);
 
-        // 逐条判断：放得开的两条并排一行，放不开的一条独占整行。
-        // 每加一行就按它实际占的高度累加，装不下就停 —— 这样最后一行永远不会被裁掉。
+        // 排版：逐条判断放得开的两条并排一行，放不开的一条独占整行。
+        List<RowPlan> plan = planRows(context, minHeightDp, minWidthDp, rows);
         int shown = 0;
-        int usedDp = 0;
-        int index = 0;
-        while (index < rows.size()) {
-            TaskRow current = rows.get(index);
-            TaskRow next = index + 1 < rows.size() ? rows.get(index + 1) : null;
-            boolean currentFits = fitsInColumn(context, current.title, minWidthDp);
-            boolean nextFits = next != null && fitsInColumn(context, next.title, minWidthDp);
-            boolean pair = currentFits && nextFits;
-            int rowHeight = pair ? PAIR_ROW_HEIGHT_DP : FULL_ROW_HEIGHT_DP;
 
-            if (usedDp + rowHeight > availableDp) break;
+        // 高度排不满时，把剩下的空间匀成行与行之间的间隙，让内容均匀铺满整个区域，
+        // 而不是全部堆在顶部、下面空一大块（这正是用户说的「空间利用率不高」）。
+        //
+        // 间隙高度按「剩余空间 ÷ 间隙数」精确算出来，而不是固定几档：
+        // 固定档位要么留一大块空白，要么超出被裁。每一行额外留 2px 安全余量，
+        // 保证真机字体比测试环境大一点时也不会把最后一行顶出去。
+        // 间隙高度 = 剩下的空间 ÷ 间隙条数（向下取整到 dp），最多 62dp。
+        // 行高用的是「实测值」（比预算常量少 1dp），这样算出来的间隙偏保守，
+        // 真机字体比测试环境大一点时也不会把最后一行顶出去。
+        int rowsDp = 0;
+        for (RowPlan rp : plan) {
+            rowsDp += rowHeightDp(rp) - 1;
+        }
+        int gaps = plan.size() - 1;
+        int gapDp = 0;
+        if (gaps > 0) {
+            gapDp = (availableDp - rowsDp) / gaps;
+            if (gapDp > GAP_MAX_DP) gapDp = GAP_MAX_DP;
+            if (gapDp < 0) gapDp = 0;
+        }
 
-            if (pair) {
-                views.addView(R.id.w_list, buildPairRow(context, current, next));
-                shown += 2;
-                index += 2;
-            } else {
-                views.addView(R.id.w_list, buildFullRow(context, current));
-                shown += 1;
-                index += 1;
+        int rowIndex = 0;
+        for (RowPlan rp : plan) {
+            if (gapDp > 0 && rowIndex > 0) {
+                views.addView(R.id.w_list, buildGap(context, gapDp));
             }
-            usedDp += rowHeight;
+            if (rp.pairRight != null) {
+                views.addView(R.id.w_list, buildPairRow(context, rp.left, rp.pairRight));
+                shown += 2;
+            } else if (rp.level == LEVEL_TINY) {
+                views.addView(R.id.w_list, buildTinyRow(context, rp.left));
+                shown += 1;
+            } else if (rp.level == LEVEL_COMPACT) {
+                views.addView(R.id.w_list, buildCompactRow(context, rp.left));
+                shown += 1;
+            } else {
+                views.addView(R.id.w_list, buildFullRow(context, rp.left));
+                shown += 1;
+            }
+            rowIndex++;
+        }
+
+        // 最后一行下面还剩多少空间？再补一段间隙吃掉，
+        // 否则组件底部会空出一截白（用户说的「空间利用率不高」）。
+        int restDp = availableDp - rowsDp - gaps * gapDp;
+        if (restDp > 0) {
+            views.addView(R.id.w_list, buildGap(context, Math.min(restDp, GAP_MAX_DP)));
         }
 
         if (rows.isEmpty()) {
             views.setViewVisibility(R.id.w_empty, View.VISIBLE);
             views.setTextViewText(R.id.w_empty, emptyText);
-            views.setTextViewText(R.id.w_more, context.getString(R.string.widget_open_all));
         } else {
             views.setViewVisibility(R.id.w_empty, View.GONE);
-            int rest = Math.max(0, totalCount - shown);
-            views.setTextViewText(R.id.w_more, rest > 0
-                    ? context.getString(R.string.widget_more_count, rest)
-                    : context.getString(R.string.widget_open_all));
         }
-        if (moreIntent != null) views.setOnClickPendingIntent(R.id.w_more, moreIntent);
+        // 标题栏右侧显示「已显示 / 总数」：原来这行信息放在底部，会白白占掉 22dp，
+        // 相当于少显示一行任务。现在合并到标题栏，空间全留给任务。
+        views.setTextViewText(R.id.w_count, context.getString(
+                R.string.widget_shown_count, shown, totalCount));
+        if (moreIntent != null) views.setOnClickPendingIntent(R.id.w_header, moreIntent);
         return views;
+    }
+
+    /** 这一行实际占多高（dp）。 */
+    private static int rowHeightDp(RowPlan rp) {
+        if (rp.level != LEVEL_NORMAL) return rowHeightDpForLevel(rp.level);
+        return (rp.pairRight != null) ? PAIR_ROW_HEIGHT_DP : FULL_ROW_HEIGHT_DP;
+    }
+
+    /** 这个高度该用哪一档的行样式。 */
+    public static int levelForHeight(int minHeightDp) {
+        if (minHeightDp <= TINY_HEIGHT_DP) return LEVEL_TINY;
+        if (minHeightDp < COMPACT_HEIGHT_DP) return LEVEL_COMPACT;
+        return LEVEL_NORMAL;
+    }
+
+    /** 某一档的行占多高（dp）。 */
+    private static int rowHeightDpForLevel(int level) {
+        if (level == LEVEL_TINY) return TINY_ROW_HEIGHT_DP;
+        if (level == LEVEL_COMPACT) return COMPACT_ROW_HEIGHT_DP;
+        return FULL_ROW_HEIGHT_DP;
+    }
+
+    /**
+     * 精简行：组件被拖得很矮时用，只有一行标题 + 左侧圆点（约 19dp），
+     * 不显示副标题 —— 这样 60dp 高的小组件也能真正显示一条任务。
+     */
+    private static RemoteViews buildCompactRow(Context context, TaskRow item) {
+        RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.widget_item_compact);
+        int color = ContextCompat.getColor(context, Category.colorRes(item.category));
+        row.setTextViewText(R.id.w_item_title, item.title);
+        row.setTextColor(R.id.w_item_title, color);
+        row.setImageViewResource(R.id.w_item_icon, Category.ringRes(item.category));
+        row.setOnClickPendingIntent(R.id.w_item_root, toggleTask(context, item.groupId, item.taskId));
+        return row;
+    }
+
+    /** 极简行：组件被拖到最小的时候用，圆点 + 一行 10sp 的标题。 */
+    private static RemoteViews buildTinyRow(Context context, TaskRow item) {
+        RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.widget_item_tiny);
+        int color = ContextCompat.getColor(context, Category.colorRes(item.category));
+        row.setTextViewText(R.id.w_item_title, item.title);
+        row.setTextColor(R.id.w_item_title, color);
+        row.setImageViewResource(R.id.w_item_icon, Category.ringRes(item.category));
+        row.setOnClickPendingIntent(R.id.w_item_root, toggleTask(context, item.groupId, item.taskId));
+        return row;
     }
 
     /** 独占整行的一条任务：宽度够，副标题（分组 / 截止）也一起显示。 */
@@ -269,6 +541,47 @@ public final class WidgetFactory {
                 context.getString(R.string.widget_empty));
     }
 
+    /**
+     * 「自定义清单」：按用户选的范围显示任务。
+     *
+     * <p>范围有三种：全部任务、某个分组、某个四象限分类。用户在添加到桌面时选好，
+     * 之后这个卡片就固定按这个范围显示；同一个卡片可以在桌面上叠好几个，各看各的。</p>
+     */
+    public static RemoteViews buildCustomList(Context context, int widgetId,
+                                               int minHeightDp, int minWidthDp) {
+        TodoStore store = TodoStore.get(context);
+        int scope = WidgetConfig.getScopeType(context, widgetId);
+        String groupId = WidgetConfig.getGroup(context, widgetId);
+        int category = WidgetConfig.getCategory(context, widgetId);
+
+        List<TaskRow> rows = new ArrayList<>();
+        for (Task t : store.allPendingTasks()) {
+            Group g = groupOf(store, t);
+            if (scope == WidgetConfig.SCOPE_GROUP) {
+                if (g == null || !g.id.equals(groupId)) continue;
+            } else if (scope == WidgetConfig.SCOPE_CATEGORY) {
+                if (Category.of(t) != category) continue;
+            }
+            rows.add(new TaskRow(t.title, subOf(g == null ? "" : g.name, t),
+                    g == null ? "" : g.id, t.id, Category.of(t)));
+        }
+
+        String title;
+        Group scopeGroup = scope == WidgetConfig.SCOPE_GROUP ? store.findGroup(groupId) : null;
+        if (scopeGroup != null) {
+            title = scopeGroup.name;
+        } else if (scope == WidgetConfig.SCOPE_CATEGORY) {
+            title = context.getString(Category.nameRes(category));
+        } else {
+            title = context.getString(R.string.widget_list_title);
+        }
+        return buildTaskList(context, minHeightDp, minWidthDp, title,
+                context.getString(R.string.widget_pending_count, rows.size()),
+                rows, rows.size(), true,
+                openApp(context, "add"), openApp(context, null), openApp(context, null),
+                context.getString(R.string.widget_empty));
+    }
+
     /** 「分组概览」：各分组及未完成数量。 */
     public static RemoteViews buildGroupOverview(Context context, int minHeightDp) {
         return buildGroupOverview(context, minHeightDp, DEFAULT_MIN_WIDTH);
@@ -283,6 +596,7 @@ public final class WidgetFactory {
                 R.string.widget_group_count, store.groupCount(), store.totalPending()));
         views.setOnClickPendingIntent(R.id.w_header, openApp(context, null));
         views.setOnClickPendingIntent(R.id.w_refresh, refreshWidget(context));
+        applyCompact(views, minHeightDp);
 
         List<Group> groups = store.groups();
         views.removeAllViews(R.id.w_list);
@@ -298,18 +612,46 @@ public final class WidgetFactory {
             idx++;
         }
 
+        // 分组不够多、但小组件很高时，行与行之间拉开距离把空间用掉（别空一大块）
+        if (!groups.isEmpty()) {
+            int availableDp = Math.max(0, minHeightDp - chromeHeightDp(minHeightDp));
+            int usedDp = idx * GROUP_ROW_HEIGHT_DP;
+            int gaps = idx - 1;
+            int gapDp = 0;
+            if (gaps > 0) {
+                int spare = availableDp - usedDp;
+                if (spare > 0) {
+                    gapDp = spare / gaps;
+                    if (gapDp > GAP_MAX_DP) gapDp = GAP_MAX_DP;
+                }
+            }
+            if (gapDp > 0) {
+                // 重新插一遍，中间夹上间隙
+                views.removeAllViews(R.id.w_list);
+                int n = 0;
+                for (Group g : groups) {
+                    if (n >= idx) break;
+                    if (n > 0) views.addView(R.id.w_list, buildGap(context, gapDp));
+                    RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.widget_group_item);
+                    row.setTextViewText(R.id.w_item_name, g.name);
+                    row.setTextViewText(R.id.w_item_count, context.getString(
+                            R.string.widget_group_pending, g.pendingCount(), g.tasks.size()));
+                    row.setOnClickPendingIntent(R.id.w_item_root, openGroup(context, g.id));
+                    views.addView(R.id.w_list, row);
+                    n++;
+                }
+            }
+        }
+
         if (groups.isEmpty()) {
             views.setViewVisibility(R.id.w_list, View.GONE);
             views.setViewVisibility(R.id.w_empty, View.VISIBLE);
-            views.setTextViewText(R.id.w_more, context.getString(R.string.widget_create_group));
         } else {
             views.setViewVisibility(R.id.w_list, View.VISIBLE);
             views.setViewVisibility(R.id.w_empty, View.GONE);
-            int rest = groups.size() - maxRows;
-            views.setTextViewText(R.id.w_more, rest > 0
-                    ? context.getString(R.string.widget_more_count, rest)
-                    : context.getString(R.string.widget_open_all));
         }
+        views.setTextViewText(R.id.w_count, context.getString(
+                R.string.widget_shown_groups, Math.min(idx, groups.size()), groups.size()));
         return views;
     }
 
@@ -325,9 +667,14 @@ public final class WidgetFactory {
                 R.string.widget_category_count, totalPending));
         views.setOnClickPendingIntent(R.id.w_header, openCategoryTab(context));
         views.setOnClickPendingIntent(R.id.w_refresh, refreshWidget(context));
+        applyCompact(views, minHeightDp);
 
         views.removeAllViews(R.id.w_list);
-        for (int cat = 0; cat < Category.COUNT; cat++) {
+        // 矮的时候放不下 4 行就少放几行，绝不让最后一行被裁掉
+        int availableDp = Math.max(0, minHeightDp - chromeHeightDp(minHeightDp));
+        int maxRows = Math.max(0, availableDp / GROUP_ROW_HEIGHT_DP);
+        int shown = 0;
+        for (int cat = 0; cat < Category.COUNT && shown < maxRows; cat++) {
             RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.widget_category_item);
             row.setTextViewText(R.id.w_item_name, context.getString(Category.nameRes(cat)));
             row.setTextViewText(R.id.w_item_count, context.getString(
@@ -335,9 +682,35 @@ public final class WidgetFactory {
             row.setImageViewResource(R.id.w_item_dot, Category.dotRes(cat));
             row.setOnClickPendingIntent(R.id.w_item_root, openCategoryTab(context));
             views.addView(R.id.w_list, row);
+            shown++;
         }
-        views.setTextViewText(R.id.w_more, context.getString(R.string.widget_open_all));
-        views.setOnClickPendingIntent(R.id.w_more, openCategoryTab(context));
+
+        // 高度富余时，行与行之间拉开距离把空间用掉（别空一大块）
+        if (shown > 1) {
+            int usedDp = shown * GROUP_ROW_HEIGHT_DP;
+            int gaps = shown - 1;
+            int gapDp = 0;
+            int spare = availableDp - usedDp;
+            if (spare > 0) {
+                gapDp = spare / gaps;
+                if (gapDp > GAP_MAX_DP) gapDp = GAP_MAX_DP;
+            }
+            if (gapDp > 0) {
+                views.removeAllViews(R.id.w_list);
+                int n = 0;
+                for (int cat = 0; cat < Category.COUNT && n < shown; cat++) {
+                    if (n > 0) views.addView(R.id.w_list, buildGap(context, gapDp));
+                    RemoteViews row = new RemoteViews(context.getPackageName(), R.layout.widget_category_item);
+                    row.setTextViewText(R.id.w_item_name, context.getString(Category.nameRes(cat)));
+                    row.setTextViewText(R.id.w_item_count, context.getString(
+                            R.string.widget_group_pending, counts[cat], countIn(all, cat)));
+                    row.setImageViewResource(R.id.w_item_dot, Category.dotRes(cat));
+                    row.setOnClickPendingIntent(R.id.w_item_root, openCategoryTab(context));
+                    views.addView(R.id.w_list, row);
+                    n++;
+                }
+            }
+        }
         return views;
     }
 

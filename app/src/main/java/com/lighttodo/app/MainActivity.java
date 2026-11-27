@@ -25,9 +25,13 @@ import com.google.android.material.button.MaterialButton;
 import com.google.android.material.floatingactionbutton.FloatingActionButton;
 import com.google.android.material.bottomnavigation.BottomNavigationView;
 import com.lighttodo.app.model.Category;
+import com.lighttodo.app.model.QuestionCategory;
 import com.lighttodo.app.model.Group;
 import com.lighttodo.app.model.Task;
+import com.lighttodo.app.store.QuestionStore;
 import com.lighttodo.app.store.TodoStore;
+import com.lighttodo.app.ui.PhotoPicker;
+import com.lighttodo.app.ui.QuestionCategoryAdapter;
 import com.lighttodo.app.ui.CategoryAdapter;
 import com.lighttodo.app.ui.TaskEditor;
 import com.lighttodo.app.util.Notifier;
@@ -49,16 +53,24 @@ public class MainActivity extends AppCompatActivity {
     /** 外部（比如桌面小组件）可以直接指定打开哪个页签：0 分组，1 分类。 */
     public static final String EXTRA_TAB = "tab";
 
-    /** 底部导航三个页面 */
+    /** 底部导航四个页面 */
     public static final int PAGE_GROUPS = 0;
     public static final int PAGE_CATEGORIES = 1;
-    public static final int PAGE_SETTINGS = 2;
+    public static final int PAGE_QUESTIONS = 2;
+    public static final int PAGE_SETTINGS = 3;
 
     private TodoStore store;
+    private QuestionStore questionStore;
     private GroupAdapter adapter;
     private CategoryAdapter categoryAdapter;
+    private QuestionCategoryAdapter questionCategoryAdapter;
+    private View emptyQuestionView;
+    private TextView summaryQuestionView;
+    private PhotoPicker photoPicker;
     private View emptyView;
     private View emptyCategoryView;
+    private TextView emptyCategoryTitle;
+    private TextView emptyCategoryHint;
     private TextView summaryView;
     private TextView summaryCategoryView;
     private Toolbar toolbar;
@@ -82,6 +94,10 @@ public class MainActivity extends AppCompatActivity {
         setContentView(R.layout.activity_main);
 
         store = TodoStore.get(this);
+        questionStore = QuestionStore.get(this);
+
+        photoPicker = new PhotoPicker(this);
+        photoPicker.init();
 
         toolbar = findViewById(R.id.toolbar);
         setSupportActionBar(toolbar);
@@ -90,6 +106,8 @@ public class MainActivity extends AppCompatActivity {
         summaryCategoryView = findViewById(R.id.summary_category);
         emptyView = findViewById(R.id.empty);
         emptyCategoryView = findViewById(R.id.empty_category);
+        emptyCategoryTitle = findViewById(R.id.empty_category_title);
+        emptyCategoryHint = findViewById(R.id.empty_category_hint);
 
         RecyclerView list = findViewById(R.id.list);
         list.setLayoutManager(new LinearLayoutManager(this));
@@ -123,11 +141,32 @@ public class MainActivity extends AppCompatActivity {
         });
         categoryList.setAdapter(categoryAdapter);
 
+        // 题目页：题目分类列表
+        emptyQuestionView = findViewById(R.id.empty_question);
+        summaryQuestionView = findViewById(R.id.summary_question);
+        RecyclerView questionCategoryList = findViewById(R.id.question_category_list);
+        questionCategoryList.setLayoutManager(new LinearLayoutManager(this));
+        questionCategoryAdapter = new QuestionCategoryAdapter(questionStore,
+                new QuestionCategoryAdapter.Listener() {
+                    @Override
+                    public void onOpen(QuestionCategory category) {
+                        openQuestions(category);
+                    }
+
+                    @Override
+                    public void onMore(QuestionCategory category) {
+                        showQuestionCategoryMenu(category);
+                    }
+                });
+        questionCategoryList.setAdapter(questionCategoryAdapter);
+
         BottomNavigationView nav = findViewById(R.id.bottom_nav);
         nav.setOnItemSelectedListener(item -> {
             int page;
             if (item.getItemId() == R.id.nav_categories) {
                 page = PAGE_CATEGORIES;
+            } else if (item.getItemId() == R.id.nav_questions) {
+                page = PAGE_QUESTIONS;
             } else if (item.getItemId() == R.id.nav_settings) {
                 page = PAGE_SETTINGS;
             } else {
@@ -146,6 +185,8 @@ public class MainActivity extends AppCompatActivity {
         fab.setOnClickListener(v -> {
             if (currentPage == PAGE_CATEGORIES) {
                 showPickGroupDialog();
+            } else if (currentPage == PAGE_QUESTIONS) {
+                showAddQuestionCategoryDialog();
             } else {
                 showAddGroupDialog();
             }
@@ -167,6 +208,9 @@ public class MainActivity extends AppCompatActivity {
 
         // 把还没触发的提醒重新登记一遍，防止系统重启后闹钟丢失
         ReminderScheduler.rescheduleAll(this);
+        // 自动变分类：补上错过的（设备关机、被系统清理导致闹钟没触发）
+        com.lighttodo.app.util.AutoCategoryScheduler.applyDueSteps(this);
+        com.lighttodo.app.util.AutoCategoryScheduler.rescheduleAll(this);
 
         // 第一次进 App 就把通知权限要过来，不然到点没有通知
         if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU && !Notifier.canNotify(this)) {
@@ -207,7 +251,22 @@ public class MainActivity extends AppCompatActivity {
         int catPending = counts[0] + counts[1] + counts[2] + counts[3];
         summaryCategoryView.setText(getString(R.string.category_summary, catPending));
         categoryAdapter.setData(buildCategoryItems());
-        emptyCategoryView.setVisibility(store.totalTasks() == 0 ? View.VISIBLE : View.GONE);
+        // 分类页只列未完成的任务：一条都没剩时显示空状态（不然只剩四个空象限标题）
+        if (store.totalPending() == 0) {
+            emptyCategoryView.setVisibility(View.VISIBLE);
+            boolean allDone = store.totalTasks() > 0;
+            emptyCategoryTitle.setText(allDone
+                    ? R.string.empty_category_all_done_title : R.string.empty_category_title);
+            emptyCategoryHint.setText(allDone
+                    ? R.string.empty_category_all_done_hint : R.string.empty_category_hint);
+        } else {
+            emptyCategoryView.setVisibility(View.GONE);
+        }
+
+        questionCategoryAdapter.setData(questionStore.categories());
+        summaryQuestionView.setText(getString(R.string.q_summary,
+                questionStore.categoryCount(), questionStore.totalPending()));
+        emptyQuestionView.setVisibility(questionStore.categoryCount() == 0 ? View.VISIBLE : View.GONE);
     }
 
     /** 切换底部导航的三个页面。 */
@@ -216,22 +275,106 @@ public class MainActivity extends AppCompatActivity {
         findViewById(R.id.page_groups).setVisibility(page == PAGE_GROUPS ? View.VISIBLE : View.GONE);
         findViewById(R.id.page_categories)
                 .setVisibility(page == PAGE_CATEGORIES ? View.VISIBLE : View.GONE);
+        findViewById(R.id.page_questions)
+                .setVisibility(page == PAGE_QUESTIONS ? View.VISIBLE : View.GONE);
         findViewById(R.id.page_settings)
                 .setVisibility(page == PAGE_SETTINGS ? View.VISIBLE : View.GONE);
 
         FloatingActionButton fab = findViewById(R.id.fab);
         // 设置页没有「新建」按钮
         fab.setVisibility(page == PAGE_SETTINGS ? View.GONE : View.VISIBLE);
-        fab.setContentDescription(getString(page == PAGE_CATEGORIES
-                ? R.string.action_new_task : R.string.action_new_group));
+        int fabDesc;
+        if (page == PAGE_CATEGORIES) {
+            fabDesc = R.string.action_new_task;
+        } else if (page == PAGE_QUESTIONS) {
+            fabDesc = R.string.action_new_question_category;
+        } else {
+            fabDesc = R.string.action_new_group;
+        }
+        fab.setContentDescription(getString(fabDesc));
 
         if (toolbar != null) {
-            toolbar.setTitle(page == PAGE_GROUPS ? R.string.app_name
-                    : page == PAGE_CATEGORIES ? R.string.tab_categories : R.string.tab_settings);
+            int titleRes;
+            if (page == PAGE_GROUPS) {
+                titleRes = R.string.app_name;
+            } else if (page == PAGE_CATEGORIES) {
+                titleRes = R.string.tab_categories;
+            } else if (page == PAGE_QUESTIONS) {
+                titleRes = R.string.tab_questions;
+            } else {
+                titleRes = R.string.tab_settings;
+            }
+            toolbar.setTitle(titleRes);
         }
         emptyView.setVisibility(View.GONE);
         emptyCategoryView.setVisibility(View.GONE);
         refresh();
+    }
+
+    // ------------------------------------------------------------ 题目
+
+    /** 打开某个题目分类下的题目列表。 */
+    private void openQuestions(QuestionCategory category) {
+        Intent intent = new Intent(this, QuestionActivity.class);
+        intent.putExtra(QuestionActivity.EXTRA_CATEGORY_ID, category.id);
+        startActivity(intent);
+    }
+
+    /** 新建一个题目分类（比如「高等数学」「线性代数」）。 */
+    private void showAddQuestionCategoryDialog() {
+        View view = LayoutInflater.from(this).inflate(R.layout.dialog_group, null);
+        final EditText input = view.findViewById(R.id.input_name);
+        input.setHint(R.string.q_category_name_hint);
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.action_new_question_category)
+                .setView(view)
+                .setNegativeButton(R.string.action_cancel, null)
+                .setPositiveButton(R.string.action_save, (dialog, which) -> {
+                    String name = input.getText().toString().trim();
+                    if (name.isEmpty()) {
+                        android.widget.Toast.makeText(this, R.string.q_category_name_empty,
+                                android.widget.Toast.LENGTH_LONG).show();
+                        return;
+                    }
+                    questionStore.addCategory(name);
+                    refresh();
+                })
+                .show();
+    }
+
+    /** 长按题目分类：重命名 / 删除。 */
+    private void showQuestionCategoryMenu(final QuestionCategory category) {
+        String[] items = {getString(R.string.action_rename), getString(R.string.action_delete)};
+        new MaterialAlertDialogBuilder(this)
+                .setItems(items, (dialog, which) -> {
+                    if (which == 0) {
+                        View view = LayoutInflater.from(this).inflate(R.layout.dialog_group, null);
+                        final EditText input = view.findViewById(R.id.input_name);
+                        input.setText(category.name);
+                        new MaterialAlertDialogBuilder(this)
+                                .setTitle(R.string.q_rename_category)
+                                .setView(view)
+                                .setNegativeButton(R.string.action_cancel, null)
+                                .setPositiveButton(R.string.action_save, (d, w) -> {
+                                    String name = input.getText().toString().trim();
+                                    if (name.isEmpty()) return;
+                                    questionStore.renameCategory(category.id, name);
+                                    refresh();
+                                })
+                                .show();
+                    } else {
+                        new MaterialAlertDialogBuilder(this)
+                                .setTitle(R.string.q_delete_category)
+                                .setMessage(R.string.q_delete_category_hint)
+                                .setNegativeButton(R.string.action_cancel, null)
+                                .setPositiveButton(R.string.action_delete, (d, w) -> {
+                                    questionStore.deleteCategory(category.id);
+                                    refresh();
+                                })
+                                .show();
+                    }
+                })
+                .show();
     }
 
     /** 设置页：两个入口（提醒与权限 / 关于）。 */
@@ -276,19 +419,20 @@ public class MainActivity extends AppCompatActivity {
         }
         for (int i = 0; i < Category.COUNT; i++) {
             List<Task> list = buckets.get(i);
-            Collections.sort(list, new Comparator<Task>() {
+            // 分类页只列还没完成的任务：做完了再去「分组」页看（那边有「已完成」分隔线）。
+            // 这里留着已完成的任务会让列表越用越长，看一眼全是打过勾的旧事。
+            List<Task> pending = new ArrayList<>();
+            for (Task t : list) {
+                if (!t.done) pending.add(t);
+            }
+            Collections.sort(pending, new Comparator<Task>() {
                 @Override
                 public int compare(Task a, Task b) {
-                    if (a.done != b.done) return a.done ? 1 : -1;
                     return Long.compare(a.order, b.order);
                 }
             });
-            int pending = 0;
-            for (Task t : list) {
-                if (!t.done) pending++;
-            }
-            items.add(new CategoryAdapter.Header(i, list.size(), pending));
-            items.addAll(list);
+            items.add(new CategoryAdapter.Header(i, pending.size(), pending.size()));
+            items.addAll(pending);
         }
         return items;
     }

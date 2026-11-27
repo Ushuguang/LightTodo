@@ -47,6 +47,11 @@ public class CategoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             this.total = total;
             this.pending = pending;
         }
+
+        /** 分类页只列未完成的任务，表头就只写「N 项待办」，不用再写「共 M 项」。 */
+        public boolean pendingOnly() {
+            return total == pending;
+        }
     }
 
     private final List<Object> items = new ArrayList<>();
@@ -89,8 +94,13 @@ public class CategoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             vh.dot.getBackground().setTint(color);
             vh.name.setText(Category.nameRes(header.category));
             vh.name.setTextColor(color);
-            vh.count.setText(vh.itemView.getContext().getString(
-                    R.string.category_count, header.pending, header.total));
+            if (header.pendingOnly()) {
+                vh.count.setText(vh.itemView.getContext().getString(
+                        R.string.category_count_pending, header.pending));
+            } else {
+                vh.count.setText(vh.itemView.getContext().getString(
+                        R.string.category_count, header.pending, header.total));
+            }
             return;
         }
 
@@ -124,18 +134,31 @@ public class CategoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         vh.dot.getBackground().setTint(catColor);
         vh.dot.setVisibility(View.VISIBLE);
 
+        // 所属分类：分类页里就不标了 —— 任务本来就按象限分好了，
+        // 象限标题已经写着「重要紧急 / 重要不紧急」，每条再写一遍是重复。
+        // 分类页只标「所属分组」，标题左边的颜色点照旧表示紧急程度。
+        vh.cat.setVisibility(View.GONE);
+
         // 所属分组
         Group group = store.groupOfTask(task);
-        if (group != null) {
+        boolean hasGroup = group != null && !group.name.trim().isEmpty();
+        if (hasGroup) {
             vh.group.setVisibility(View.VISIBLE);
             vh.group.setText(group.name);
         } else {
             vh.group.setVisibility(View.GONE);
         }
 
+        // 自动变分类提示：下一个时间点，什么时间变成哪个分类
+        bindAutoHint(vh.auto, task);
+
         // 截止 / 提醒
         long now = System.currentTimeMillis();
-        boolean hasMeta = task.hasDue() || task.hasReminder();
+        // 这一行（t_meta）里装着「分组 + 截止 + 提醒」，
+        // 只要这一行里有任何一项要显示，整行就显示出来 ——
+        // 以前只在「有截止或提醒」时才显示，结果把分组名一起藏掉了，
+        // 没有时间、没有提醒的任务看上去就什么归属都没有。
+        boolean hasMeta = hasGroup || task.hasDue() || task.hasReminder();
         vh.meta.setVisibility(hasMeta ? View.VISIBLE : View.GONE);
         int normal = MaterialColors.getColor(vh.title, com.google.android.material.R.attr.colorOnSurfaceVariant);
         if (task.hasDue()) {
@@ -195,12 +218,45 @@ public class CategoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
         }
     }
 
+    /**
+     * 显示「自动变分类」提示：下一个时间点会变成哪个分类。
+     *
+     * <p>没有设置、或时间点都已经过去了，就不显示这行字。</p>
+     */
+    public static void bindAutoHint(TextView autoView, Task task) {
+        if (autoView == null || task == null) return;
+        long next = 0L;
+        for (com.lighttodo.app.model.AutoCategoryStep step : task.autoSteps) {
+            if (step.at > System.currentTimeMillis() && (next == 0L || step.at < next)) next = step.at;
+        }
+        if (next == 0L) {
+            autoView.setVisibility(View.GONE);
+            return;
+        }
+        int category = com.lighttodo.app.model.Category.NOT_IMPORTANT_NOT_URGENT;
+        for (com.lighttodo.app.model.AutoCategoryStep step : task.autoSteps) {
+            if (step.at == next) {
+                category = step.category();
+                break;
+            }
+        }
+        autoView.setVisibility(View.VISIBLE);
+        // 注意：nameRes 返回的是资源 id，要再 getString 一次才是文字，
+        // 直接塞进 getString 的参数会显示成一串数字。
+        autoView.setText(autoView.getContext().getString(R.string.task_auto_hint,
+                com.lighttodo.app.util.TimeText.full(next),
+                autoView.getContext().getString(
+                        com.lighttodo.app.model.Category.nameRes(category))));
+    }
+
     static class TaskVH extends RecyclerView.ViewHolder {
         final ImageView check;
         final TextView title;
         final TextView note;
         final View dot;
         final View meta;
+        final TextView auto;
+        final TextView cat;
         final TextView group;
         final ImageView dueIcon;
         final TextView due;
@@ -214,6 +270,8 @@ public class CategoryAdapter extends RecyclerView.Adapter<RecyclerView.ViewHolde
             note = itemView.findViewById(R.id.t_note);
             dot = itemView.findViewById(R.id.t_dot);
             meta = itemView.findViewById(R.id.t_meta);
+            auto = itemView.findViewById(R.id.t_auto);
+            cat = itemView.findViewById(R.id.t_cat);
             group = itemView.findViewById(R.id.t_group);
             dueIcon = itemView.findViewById(R.id.t_due_icon);
             due = itemView.findViewById(R.id.t_due);

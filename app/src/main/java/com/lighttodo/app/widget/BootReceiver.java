@@ -18,6 +18,8 @@ public class BootReceiver extends BroadcastReceiver {
                 || Intent.ACTION_TIME_CHANGED.equals(action)
                 || Intent.ACTION_TIMEZONE_CHANGED.equals(action)) {
             ReminderScheduler.rescheduleAll(context);
+            // 自动变分类的闹钟也要重新登记（设备重启后系统会把闹钟清掉）
+            com.lighttodo.app.util.AutoCategoryScheduler.rescheduleAll(context);
             TodoWidgets.refreshAll(context);
         }
     }

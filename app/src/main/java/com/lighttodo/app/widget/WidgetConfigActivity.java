@@ -31,6 +31,7 @@ public class WidgetConfigActivity extends AppCompatActivity {
     public static final String EXTRA_MODE = "mode";
     public static final String MODE_GROUP = "group";
     public static final String MODE_CATEGORY = "category";
+    public static final String MODE_CUSTOM = "custom";
 
     private int appWidgetId = AppWidgetManager.INVALID_APPWIDGET_ID;
 
@@ -56,8 +57,10 @@ public class WidgetConfigActivity extends AppCompatActivity {
         String mode = resolveMode();
         if (MODE_GROUP.equals(mode)) {
             showGroups();
-        } else {
+        } else if (MODE_CATEGORY.equals(mode)) {
             showCategories();
+        } else {
+            showScopes();
         }
     }
 
@@ -72,6 +75,8 @@ public class WidgetConfigActivity extends AppCompatActivity {
                 String name = info.provider.getClassName();
                 if (GroupTaskWidgetProvider.class.getName().equals(name)) return MODE_GROUP;
                 if (CategoryTaskWidgetProvider.class.getName().equals(name)) return MODE_CATEGORY;
+                if (CustomListWidgetProvider.class.getName().equals(name)) return MODE_CUSTOM;
+                if (PlainCustomListWidgetProvider.class.getName().equals(name)) return MODE_CUSTOM;
             }
         } catch (Throwable ignored) {
         }
@@ -126,6 +131,71 @@ public class WidgetConfigActivity extends AppCompatActivity {
             });
             rows.addView(row);
         }
+        setEmpty(false);
+    }
+
+    /**
+     * 「自定义清单」的配置：一个列表里选范围 ——
+     * 全部任务 / 某个分组 / 某个四象限分类。
+     */
+    private void showScopes() {
+        TextView hint = findViewById(R.id.hint);
+        hint.setText(R.string.widget_config_pick_scope);
+        setTitle(R.string.widget_config_pick_scope);
+
+        TodoStore store = TodoStore.get(this);
+        ViewGroup rows = findViewById(R.id.rows);
+        rows.removeAllViews();
+
+        // 全部任务
+        View all = LayoutInflater.from(this).inflate(R.layout.item_widget_config, rows, false);
+        ((View) all.findViewById(R.id.c_dot)).setBackgroundResource(R.drawable.w_dot_not_important_not_urgent);
+        ((TextView) all.findViewById(R.id.c_name)).setText(R.string.widget_scope_all);
+        ((TextView) all.findViewById(R.id.c_count)).setText(
+                getString(R.string.widget_config_count, store.totalPending()));
+        all.setOnClickListener(v -> {
+            WidgetConfig.setScopeType(this, appWidgetId, WidgetConfig.SCOPE_ALL);
+            WidgetConfig.setGroup(this, appWidgetId, null);
+            WidgetConfig.setCategory(this, appWidgetId, WidgetConfig.CATEGORY_NONE);
+            finishWithResult(WidgetFactory.buildCustomList(this, appWidgetId, 110, 180));
+        });
+        rows.addView(all);
+
+        // 某个分组
+        for (Group group : store.groups()) {
+            View row = LayoutInflater.from(this).inflate(R.layout.item_widget_config, rows, false);
+            ((View) row.findViewById(R.id.c_dot)).setBackgroundResource(R.drawable.w_dot_not_important_not_urgent);
+            ((TextView) row.findViewById(R.id.c_name)).setText(group.name);
+            ((TextView) row.findViewById(R.id.c_count)).setText(
+                    getString(R.string.widget_config_count, group.pendingCount()));
+            row.setOnClickListener(v -> {
+                WidgetConfig.setScopeType(this, appWidgetId, WidgetConfig.SCOPE_GROUP);
+                WidgetConfig.setGroup(this, appWidgetId, group.id);
+                WidgetConfig.setCategory(this, appWidgetId, WidgetConfig.CATEGORY_NONE);
+                finishWithResult(WidgetFactory.buildCustomList(this, appWidgetId, 110, 180));
+            });
+            rows.addView(row);
+        }
+
+        // 某个四象限分类
+        int[] counts = store.categoryPendingCounts();
+        for (int cat = 0; cat < Category.COUNT; cat++) {
+            View row = LayoutInflater.from(this).inflate(R.layout.item_widget_config, rows, false);
+            View dot = row.findViewById(R.id.c_dot);
+            dot.getBackground().setTint(ContextCompat.getColor(this, Category.colorRes(cat)));
+            ((TextView) row.findViewById(R.id.c_name)).setText(Category.nameRes(cat));
+            ((TextView) row.findViewById(R.id.c_count)).setText(
+                    getString(R.string.widget_config_count, counts[cat]));
+            final int category = cat;
+            row.setOnClickListener(v -> {
+                WidgetConfig.setScopeType(this, appWidgetId, WidgetConfig.SCOPE_CATEGORY);
+                WidgetConfig.setCategory(this, appWidgetId, category);
+                WidgetConfig.setGroup(this, appWidgetId, null);
+                finishWithResult(WidgetFactory.buildCustomList(this, appWidgetId, 110, 180));
+            });
+            rows.addView(row);
+        }
+
         setEmpty(false);
     }
 

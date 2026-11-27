@@ -183,6 +183,70 @@ public class TodoStore {
         return true;
     }
 
+    /**
+     * 设置一条任务的「自动变分类」时间点链条（整体覆盖）。
+     *
+     * @param steps 新的链条，按时间先后排列；传空表示取消自动变分类
+     */
+    public boolean setAutoSteps(String groupId, String taskId,
+                                java.util.List<com.lighttodo.app.model.AutoCategoryStep> steps) {
+        Group g = findGroup(groupId);
+        if (g == null) return false;
+        Task task = g.findTask(taskId);
+        if (task == null) return false;
+        task.autoSteps = new java.util.ArrayList<>();
+        if (steps != null) {
+            for (com.lighttodo.app.model.AutoCategoryStep step : steps) {
+                if (step != null && step.at > 0) task.autoSteps.add(step);
+            }
+            java.util.Collections.sort(task.autoSteps,
+                    new java.util.Comparator<com.lighttodo.app.model.AutoCategoryStep>() {
+                        @Override
+                        public int compare(com.lighttodo.app.model.AutoCategoryStep a,
+                                           com.lighttodo.app.model.AutoCategoryStep b) {
+                            return Long.compare(a.at, b.at);
+                        }
+                    });
+        }
+        commit();
+        com.lighttodo.app.util.AutoCategoryScheduler.schedule(appContext, groupId, task);
+        return true;
+    }
+
+    /**
+     * 把到点的「自动变分类」执行掉：按时间先后依次应用，最终分类取最后一个到点的目标。
+     *
+     * <p>返回实际发生变化的步数（0 表示这次没有到点的）。已执行的点会被移除，
+     * 还没到的点继续留着。</p>
+     */
+    public int applyDueAutoSteps(String groupId, String taskId, long now) {
+        Group g = findGroup(groupId);
+        if (g == null) return 0;
+        Task task = g.findTask(taskId);
+        if (task == null || task.autoSteps == null || task.autoSteps.isEmpty()) return 0;
+
+        java.util.List<com.lighttodo.app.model.AutoCategoryStep> due = new java.util.ArrayList<>();
+        for (com.lighttodo.app.model.AutoCategoryStep step : task.autoSteps) {
+            if (step.at <= now) due.add(step);
+        }
+        if (due.isEmpty()) return 0;
+        java.util.Collections.sort(due,
+                new java.util.Comparator<com.lighttodo.app.model.AutoCategoryStep>() {
+                    @Override
+                    public int compare(com.lighttodo.app.model.AutoCategoryStep a,
+                                       com.lighttodo.app.model.AutoCategoryStep b) {
+                        return Long.compare(a.at, b.at);
+                    }
+                });
+
+        com.lighttodo.app.model.AutoCategoryStep last = due.get(due.size() - 1);
+        task.important = last.important;
+        task.urgent = last.urgent;
+        task.autoSteps.removeAll(due);
+        commit();
+        return due.size();
+    }
+
     /** 勾选/取消勾选。勾选后任务只是沉到列表底部，分组本身不会消失。 */
     public boolean setTaskDone(String groupId, String taskId, boolean done) {
         Group g = findGroup(groupId);
@@ -195,9 +259,12 @@ public class TodoStore {
         // 做完了就取消提醒；取消完成后如果提醒时间还在未来，重新登记回来
         if (done) {
             ReminderScheduler.cancel(appContext, taskId);
+            // 做完的任务不用再自动变分类了
+            com.lighttodo.app.util.AutoCategoryScheduler.cancel(appContext, taskId);
         } else {
             task.remindFired = false;
             ReminderScheduler.schedule(appContext, groupId, task);
+            com.lighttodo.app.util.AutoCategoryScheduler.schedule(appContext, groupId, task);
         }
         return true;
     }
@@ -218,6 +285,7 @@ public class TodoStore {
         g.tasks.remove(task);
         commit();
         ReminderScheduler.cancel(appContext, taskId);
+        com.lighttodo.app.util.AutoCategoryScheduler.cancel(appContext, taskId);
         return true;
     }
 

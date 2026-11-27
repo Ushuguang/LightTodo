@@ -36,6 +36,32 @@ public final class WidgetConfig {
     /** 没配置过时返回 -1。 */
     public static final int CATEGORY_NONE = -1;
 
+    // ------------------------------------------------------------ 自定义清单的范围
+    /** 显示全部任务。 */
+    public static final int SCOPE_ALL = 0;
+    /** 只显示某个分组。 */
+    public static final int SCOPE_GROUP = 1;
+    /** 只显示某个四象限分类。 */
+    public static final int SCOPE_CATEGORY = 2;
+    /** 范围类型没配过时，按「全部任务」处理。 */
+    private static final String KEY_SCOPE = "scope_";
+
+    /** 这个小组件显示的范围类型（全部 / 按分组 / 按分类）。 */
+    public static int getScopeType(Context context, int widgetId) {
+        return read(context).optInt(KEY_SCOPE + widgetId, SCOPE_ALL);
+    }
+
+    /** 保存这个小组件要显示的范围。 */
+    public static void setScopeType(Context context, int widgetId, int scopeType) {
+        JSONObject all = read(context);
+        try {
+            all.put(KEY_SCOPE + widgetId, scopeType);
+        } catch (Exception e) {
+            Log.w(TAG, "保存小组件范围失败", e);
+        }
+        write(context, all);
+    }
+
     private WidgetConfig() {
     }
 
@@ -76,6 +102,7 @@ public final class WidgetConfig {
         JSONObject all = read(context);
         all.remove(KEY_GROUP + widgetId);
         all.remove(KEY_CATEGORY + widgetId);
+        all.remove(KEY_SCOPE + widgetId);
         write(context, all);
     }
 

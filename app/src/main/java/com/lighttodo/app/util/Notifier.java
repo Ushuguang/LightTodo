@@ -49,6 +49,51 @@ public final class Notifier {
     }
 
     /**
+     * 发出「任务分类已自动更改」的通知。
+     *
+     * <p>不带「完成」按钮：这条通知只是告诉你分类变了，点它直接进任务所在的分组。</p>
+     */
+    public static void showAutoCategory(Context context, Task task, String groupId,
+                                        String groupName) {
+        ensureChannel(context);
+        if (!canNotify(context)) return;
+
+        Intent open = new Intent(context, GroupActivity.class);
+        open.addFlags(Intent.FLAG_ACTIVITY_NEW_TASK | Intent.FLAG_ACTIVITY_CLEAR_TOP);
+        open.putExtra(GroupActivity.EXTRA_GROUP_ID, groupId == null ? "" : groupId);
+        PendingIntent contentIntent = PendingIntent.getActivity(context, 0, open,
+                PendingIntent.FLAG_UPDATE_CURRENT | PendingIntent.FLAG_IMMUTABLE);
+
+        String catName = context.getString(com.lighttodo.app.model.Category.nameRes(
+                com.lighttodo.app.model.Category.of(task)));
+        StringBuilder text = new StringBuilder();
+        text.append(context.getString(R.string.notify_auto_category, task.title, catName));
+        if (groupName != null && !groupName.isEmpty()) {
+            text.append("（").append(groupName).append("）");
+        }
+
+        NotificationCompat.Builder builder = new NotificationCompat.Builder(context, CHANNEL_ID)
+                .setSmallIcon(R.drawable.ic_notification)
+                .setContentTitle(context.getString(R.string.notify_auto_category_title))
+                .setContentText(text.toString())
+                .setStyle(new NotificationCompat.BigTextStyle().bigText(text.toString()))
+                .setPriority(NotificationCompat.PRIORITY_DEFAULT)
+                .setCategory(NotificationCompat.CATEGORY_REMINDER)
+                .setContentIntent(contentIntent)
+                .setAutoCancel(true)
+                .setWhen(System.currentTimeMillis());
+        try {
+            manager(context).notify(task.id.hashCode() + 101, builder.build());
+        } catch (Exception ignored) {
+            // 通知发不出去也不能影响别的功能
+        }
+    }
+
+    private static NotificationManager manager(Context context) {
+        return (NotificationManager) context.getSystemService(Context.NOTIFICATION_SERVICE);
+    }
+
+    /**
      * 发出「该完成某件事了」的提醒。
      *
      * @return 这条通知有没有带上超级岛 / 焦点通知参数

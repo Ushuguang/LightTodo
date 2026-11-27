@@ -6,6 +6,7 @@ import android.graphics.Color;
 import android.view.LayoutInflater;
 import android.view.View;
 import android.widget.EditText;
+import android.widget.LinearLayout;
 import android.widget.TextView;
 import android.widget.Toast;
 
@@ -68,6 +69,8 @@ public final class TaskEditor {
         final MaterialButton btnRemindClear = view.findViewById(R.id.btn_remind_clear);
         final TextView tip = view.findViewById(R.id.tip_remind);
         final TextView groupInfo = view.findViewById(R.id.tv_group);
+        final LinearLayout autoBox = view.findViewById(R.id.auto_steps_box);
+        final MaterialButton btnAutoAdd = view.findViewById(R.id.btn_auto_add);
 
         final long[] picked = new long[2];
         picked[IDX_DUE] = existing == null ? 0L : existing.dueAt;
@@ -83,6 +86,13 @@ public final class TaskEditor {
         };
 
         final TodoStore store = TodoStore.get(activity);
+
+        // 「自动变分类」的时间点链条：按时间先后依次生效
+        final java.util.List<com.lighttodo.app.model.AutoCategoryStep> autoSteps =
+                new java.util.ArrayList<>();
+        if (existing != null && existing.autoSteps != null) {
+            autoSteps.addAll(existing.autoSteps);
+        }
 
         // 所属分组：从分类页进来时也能一眼看出这条任务属于哪个分组
         Group group = groupId == null ? null : store.findGroup(groupId);
@@ -120,6 +130,13 @@ public final class TaskEditor {
             updateTimeButton(btnRemind, btnRemindClear, 0L);
         });
 
+        // 自动变分类：链条列表 + 添加时间点
+        btnAutoAdd.setOnClickListener(v -> AutoStepEditor.show(activity, null, step -> {
+            autoSteps.add(step);
+            renderAutoSteps(activity, autoBox, autoSteps);
+        }));
+        renderAutoSteps(activity, autoBox, autoSteps);
+
         final boolean ready = Notifier.canNotify(activity) && ReminderScheduler.canScheduleExact(activity);
         tip.setText(ready ? R.string.tip_remind : R.string.tip_remind_need_permission);
 
@@ -142,11 +159,16 @@ public final class TaskEditor {
                     || pickedCat[0] == Category.NOT_IMPORTANT_URGENT;
 
             if (existing == null) {
-                store.addTask(groupId, t, n, picked[IDX_DUE], picked[IDX_REMIND], important, urgent);
+                Task created = store.addTask(groupId, t, n, picked[IDX_DUE], picked[IDX_REMIND],
+                        important, urgent);
+                if (created != null && !autoSteps.isEmpty()) {
+                    store.setAutoSteps(groupId, created.id, autoSteps);
+                }
             } else {
                 existing.important = important;
                 existing.urgent = urgent;
                 store.updateTask(groupId, existing.id, t, n, picked[IDX_DUE], picked[IDX_REMIND]);
+                store.setAutoSteps(groupId, existing.id, autoSteps);
             }
             dialog.dismiss();
             if (callback != null) callback.onSaved();
@@ -158,6 +180,42 @@ public final class TaskEditor {
             }
         }));
         dialog.show();
+    }
+
+    /**
+     * 渲染「自动变分类」的链条：每个时间点一行，写清楚什么时间变成哪个分类。
+     */
+    private static void renderAutoSteps(final AppCompatActivity activity,
+                                         LinearLayout box,
+                                         final java.util.List<com.lighttodo.app.model.AutoCategoryStep> steps) {
+        box.removeAllViews();
+        if (steps == null || steps.isEmpty()) return;
+        // 按时间先后排一下，看着清楚
+        java.util.Collections.sort(steps,
+                new java.util.Comparator<com.lighttodo.app.model.AutoCategoryStep>() {
+                    @Override
+                    public int compare(com.lighttodo.app.model.AutoCategoryStep a,
+                                       com.lighttodo.app.model.AutoCategoryStep b) {
+                        return Long.compare(a.at, b.at);
+                    }
+                });
+        LayoutInflater inflater = LayoutInflater.from(activity);
+        for (int i = 0; i < steps.size(); i++) {
+            final com.lighttodo.app.model.AutoCategoryStep step = steps.get(i);
+            final int index = i;
+            View row = inflater.inflate(R.layout.item_auto_step, box, false);
+            TextView time = row.findViewById(R.id.step_time);
+            TextView cat = row.findViewById(R.id.step_cat);
+            time.setText(com.lighttodo.app.util.TimeText.full(step.at));
+            int category = step.category();
+            cat.setText(Category.nameRes(category));
+            cat.setTextColor(ContextCompat.getColor(activity, Category.colorRes(category)));
+            row.findViewById(R.id.step_delete).setOnClickListener(v -> {
+                steps.remove(index);
+                renderAutoSteps(activity, box, steps);
+            });
+            box.addView(row);
+        }
     }
 
     /**

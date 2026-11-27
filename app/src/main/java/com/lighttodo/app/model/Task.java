@@ -24,6 +24,21 @@ public class Task {
     public boolean important;
     /** 是否紧急。 */
     public boolean urgent;
+    /**
+     * 「自动变分类」的时间点链条，按时间先后依次生效。
+     *
+     * <p>为空表示这条任务不会自动改分类。</p>
+     */
+    public java.util.List<AutoCategoryStep> autoSteps = new java.util.ArrayList<AutoCategoryStep>();
+
+    /** 下一个还没到的时间点（用来挂闹钟）；没有就返回 0。 */
+    public long nextAutoAt() {
+        long best = 0L;
+        for (AutoCategoryStep s : autoSteps) {
+            if (s.at > 0 && (best == 0L || s.at < best)) best = s.at;
+        }
+        return best;
+    }
 
     public Task() {
     }
@@ -65,6 +80,11 @@ public class Task {
         o.put("remindFired", remindFired);
         o.put("important", important);
         o.put("urgent", urgent);
+        if (autoSteps != null && !autoSteps.isEmpty()) {
+            org.json.JSONArray arr = new org.json.JSONArray();
+            for (AutoCategoryStep step : autoSteps) arr.put(step.toJson());
+            o.put("autoSteps", arr);
+        }
         return o;
     }
 
@@ -83,6 +103,13 @@ public class Task {
         t.remindFired = o.optBoolean("remindFired", false);
         t.important = o.optBoolean("important", false);
         t.urgent = o.optBoolean("urgent", false);
+        org.json.JSONArray arr = o.optJSONArray("autoSteps");
+        if (arr != null) {
+            for (int i = 0; i < arr.length(); i++) {
+                AutoCategoryStep step = AutoCategoryStep.fromJson(arr.optJSONObject(i));
+                if (step != null && step.at > 0) t.autoSteps.add(step);
+            }
+        }
         return t;
     }
 }

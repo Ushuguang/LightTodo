@@ -305,7 +305,15 @@ public class GroupActivity extends AppCompatActivity {
             long now = System.currentTimeMillis();
             boolean hasDue = task.hasDue();
             boolean hasRemind = task.hasReminder();
-            vh.meta.setVisibility(hasDue || hasRemind ? View.VISIBLE : View.GONE);
+            // 这一行里还放着「所属分类」，所以只要有分类名就得显示，
+            // 不能只看截止和提醒，否则没设时间的任务会连分类都看不见。
+            com.lighttodo.app.ui.CategoryAdapter.bindAutoHint(vh.auto, task);
+            int cat = com.lighttodo.app.model.Category.of(task);
+            vh.cat.setVisibility(View.VISIBLE);
+            vh.cat.setText(com.lighttodo.app.model.Category.nameRes(cat));
+            vh.cat.setTextColor(ContextCompat.getColor(GroupActivity.this,
+                    com.lighttodo.app.model.Category.colorRes(cat)));
+            vh.meta.setVisibility(View.VISIBLE);
 
             int normal = MaterialColors.getColor(vh.title, com.google.android.material.R.attr.colorOnSurfaceVariant);
             int overdueColor = ContextCompat.getColor(GroupActivity.this, R.color.warn_due);
@@ -356,6 +364,8 @@ public class GroupActivity extends AppCompatActivity {
             final TextView note;
             final View dot;
             final View meta;
+            final android.widget.TextView auto;
+            final android.widget.TextView cat;
             final ImageView dueIcon;
             final TextView due;
             final ImageView remindIcon;
@@ -368,6 +378,8 @@ public class GroupActivity extends AppCompatActivity {
                 note = itemView.findViewById(R.id.t_note);
                 dot = itemView.findViewById(R.id.t_dot);
                 meta = itemView.findViewById(R.id.t_meta);
+                auto = itemView.findViewById(R.id.t_auto);
+                cat = itemView.findViewById(R.id.t_cat);
                 dueIcon = itemView.findViewById(R.id.t_due_icon);
                 due = itemView.findViewById(R.id.t_due);
                 remindIcon = itemView.findViewById(R.id.t_remind_icon);

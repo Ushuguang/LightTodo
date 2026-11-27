@@ -137,6 +137,34 @@ public class AssistantActivity extends AppCompatActivity {
 
         // 7. 小米小部件：决定小组件能不能进负一屏
         addMiuiWidgetRow(rows);
+
+        // 8. 负一屏里去哪找小组件（小米把组件分成「全部组件」和「安卓组件」两类）
+        addWidgetEntryRow(rows);
+    }
+
+    /**
+     * 负一屏的组件入口说明。
+     *
+     * <p>小米把负一屏的小组件分成「全部组件」和「安卓组件」两类：带 {@code miuiWidget}
+     * 标识的进「小米小部件」通道，要上架审核后才出现在「全部组件」里；在上架之前，
+     * 系统会把它从「安卓组件」分类里也一并摘掉，结果两边都搜不到。</p>
+     *
+     * <p>所以 v1.7.0 又提供了一套完全标准的普通安卓组件，它们老老实实待在
+     * 「安卓组件」分类里（名字后面带「（安卓组件）」），随时能搜到。</p>
+     */
+    private void addWidgetEntryRow(ViewGroup rows) {
+        addRow(rows, R.drawable.ic_update, R.string.perm_widget_entry_title,
+                R.string.perm_widget_entry_desc, true,
+                getString(R.string.state_widget_entry_ok), R.color.brand_success,
+                R.string.action_view, v -> showWidgetEntryHelp());
+    }
+
+    private void showWidgetEntryHelp() {
+        new MaterialAlertDialogBuilder(this)
+                .setTitle(R.string.perm_widget_entry_title)
+                .setMessage(R.string.widget_entry_help)
+                .setPositiveButton(R.string.action_close, null)
+                .show();
     }
 
     /** 小米小部件（澎湃系统那套小组件）：决定了小组件能不能出现在负一屏。 */

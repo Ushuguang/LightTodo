@@ -21,6 +21,15 @@ public final class TodoWidgets {
         refreshCategories(context);
         refreshGroupTasks(context);
         refreshCategoryTasks(context);
+        // 普通安卓组件版本也要一起刷：两套各自独立地挂在桌面上，
+        // 刷新按钮只发一个广播，漏了哪一套哪一套就不更新。
+        refreshPlainTodoList(context);
+        refreshPlainGroups(context);
+        refreshPlainCategories(context);
+        refreshPlainGroupTasks(context);
+        refreshPlainCategoryTasks(context);
+        refreshCustomLists(context);
+        refreshPlainCustomLists(context);
     }
 
     public static void refreshTodoList(Context context) {
@@ -64,6 +73,73 @@ public final class TodoWidgets {
         int[] ids = idsOf(manager, context, CategoryTaskWidgetProvider.class);
         for (int id : ids) {
             manager.updateAppWidget(id, WidgetFactory.buildCategoryTasks(context, id,
+                    minHeight(manager, id), minWidth(manager, id)));
+        }
+    }
+
+    // ------------------------------------------------------------ 普通安卓组件版本
+
+    public static void refreshPlainTodoList(Context context) {
+        AppWidgetManager manager = AppWidgetManager.getInstance(context);
+        int[] ids = idsOf(manager, context, PlainTodoListWidgetProvider.class);
+        for (int id : ids) {
+            manager.updateAppWidget(id, WidgetFactory.buildTodoList(context,
+                    minHeight(manager, id), minWidth(manager, id)));
+        }
+    }
+
+    public static void refreshPlainGroups(Context context) {
+        AppWidgetManager manager = AppWidgetManager.getInstance(context);
+        int[] ids = idsOf(manager, context, PlainGroupWidgetProvider.class);
+        for (int id : ids) {
+            manager.updateAppWidget(id, WidgetFactory.buildGroupOverview(context,
+                    minHeight(manager, id), minWidth(manager, id)));
+        }
+    }
+
+    public static void refreshPlainCategories(Context context) {
+        AppWidgetManager manager = AppWidgetManager.getInstance(context);
+        int[] ids = idsOf(manager, context, PlainCategoryWidgetProvider.class);
+        for (int id : ids) {
+            manager.updateAppWidget(id, WidgetFactory.buildCategoryOverview(context,
+                    minHeight(manager, id), minWidth(manager, id)));
+        }
+    }
+
+    public static void refreshPlainGroupTasks(Context context) {
+        AppWidgetManager manager = AppWidgetManager.getInstance(context);
+        int[] ids = idsOf(manager, context, PlainGroupTaskWidgetProvider.class);
+        for (int id : ids) {
+            manager.updateAppWidget(id, WidgetFactory.buildGroupTasks(context, id,
+                    minHeight(manager, id), minWidth(manager, id)));
+        }
+    }
+
+    public static void refreshPlainCategoryTasks(Context context) {
+        AppWidgetManager manager = AppWidgetManager.getInstance(context);
+        int[] ids = idsOf(manager, context, PlainCategoryTaskWidgetProvider.class);
+        for (int id : ids) {
+            manager.updateAppWidget(id, WidgetFactory.buildCategoryTasks(context, id,
+                    minHeight(manager, id), minWidth(manager, id)));
+        }
+    }
+
+    // ------------------------------------------------------------ 自定义清单
+
+    public static void refreshCustomLists(Context context) {
+        AppWidgetManager manager = AppWidgetManager.getInstance(context);
+        int[] ids = idsOf(manager, context, CustomListWidgetProvider.class);
+        for (int id : ids) {
+            manager.updateAppWidget(id, WidgetFactory.buildCustomList(context, id,
+                    minHeight(manager, id), minWidth(manager, id)));
+        }
+    }
+
+    public static void refreshPlainCustomLists(Context context) {
+        AppWidgetManager manager = AppWidgetManager.getInstance(context);
+        int[] ids = idsOf(manager, context, PlainCustomListWidgetProvider.class);
+        for (int id : ids) {
+            manager.updateAppWidget(id, WidgetFactory.buildCustomList(context, id,
                     minHeight(manager, id), minWidth(manager, id)));
         }
     }
